@@ -1,3 +1,14 @@
+﻿实现了一个无限滚动背景ScrollingBackground
+
+方向：
+支持背景的从上到下，从下到上，从左到右，从右到左四个方向的滚动
+
+模式：
+1.先设置数张背景图片，之后无限循环滚动
+2.背景边滚动边插入下一张背景
+
+
+代码示例：
 class HelloWorld : public cocos2d::CCLayer
 {
 public:
@@ -67,7 +78,7 @@ pPauseItembool HelloWorld::init()
 }
 
 
-//增加一个画面，单选滚动时候起作用
+//增加一个画面，单向滚动时候起作用
 void HelloWorld::addBgBlock()
 {
     CCSprite*pS = CCSprite::create("1.png");
