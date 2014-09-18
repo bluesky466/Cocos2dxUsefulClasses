@@ -1,9 +1,9 @@
 #include "ScrollingBackground.h"
 
-ScrollingBackground* ScrollingBackground::create(ScrollType type,ScrollDirection direct,float velocity)
+ScrollingBackground* ScrollingBackground::create(ScrollDirection direction)
 { 
-    ScrollingBackground *pRet = new ScrollingBackground(); 
-    if (pRet && pRet->init(type,direct,velocity)) 
+    ScrollingBackground *pRet = new ScrollingBackground; 
+    if (pRet && pRet->init(direction)) 
     { 
         pRet->autorelease(); 
         return pRet; 
@@ -19,156 +19,208 @@ ScrollingBackground* ScrollingBackground::create(ScrollType type,ScrollDirection
 ScrollingBackground::ScrollingBackground():
 	m_eventListener(0),
 	m_eventSelector(0),
-	m_isScrolling(false)
+	m_isScrolling(false),
+	m_bScrollToNext(false),
+	m_bScrollBy(false)
 {
-
+	m_bgBlockList.clear();
 }
 
 ScrollingBackground::~ScrollingBackground()
 {
-	if(m_type == ST_CYCLE)
-	{
-		NodeList* fNode = m_blockList;
-		NodeList* lNode = fNode->_next;
-
-		while(lNode!=m_blockList)
-		{
-			CC_SAFE_DELETE(fNode);
-
-			fNode = lNode;
-			lNode = lNode->_next;
-		}
-
-		CC_SAFE_DELETE(fNode);
-	}
-	else
-	{
-		NodeList* pNode = m_blockList;
-
-		while(pNode)
-		{
-			NodeList* p = pNode;
-			pNode = pNode->_next;
-
-			CC_SAFE_DELETE(p);
-		}
-	}
+	m_bgBlockList.clear();
 }
 
-bool ScrollingBackground::init(ScrollType type,ScrollDirection direct,float velocity)
+bool ScrollingBackground::init(ScrollDirection direction)
 {
 	if(!CCNode::init())
 		return false;
 
-	m_direct   = direct;
-	m_velocity = velocity;
-	m_type	   = type;
-
-	m_visibleSize       = CCDirector::sharedDirector()->getVisibleSize();
-	m_blockList         = new NodeList;
-	m_blockList->_pNode = 0;
-
-	if(type==ST_CYCLE)
-		m_blockList->_next  = m_blockList;
-	else
-		m_blockList->_next  = 0;
-
-	m_lastListNode = m_blockList;
-	m_thisListNode = m_blockList;
-
-	return true;
-}
-
-bool ScrollingBackground::beginScroll()
-{
-	CCAssert(m_blockList->_pNode,"");
-
-	//设置第一个画面
-	CCNode* fNode = m_blockList->_pNode;
-	
-	CCPoint fAnchorPoint = fNode->getAnchorPoint();
-	CCPoint fPos(fAnchorPoint.x*m_visibleSize.width,
-				 fAnchorPoint.y*m_visibleSize.height);
-
-	fNode->setVisible(true);
-	fNode->setPosition(fPos);
-
-	m_thisListNode = m_blockList;
-
-	m_isScrolling = true;
-
+	m_direction   = direction;
+	m_visibleSize = CCDirector::sharedDirector()->getVisibleSize();
 	this->schedule(schedule_selector(ScrollingBackground::moveAction));
 
 	return true;
 }
 
-bool ScrollingBackground::isOutOfScreen(const CCPoint& pos,const CCPoint& achorPoint)
+bool ScrollingBackground::beginScroll(float velocity)
 {
-	switch(m_direct)
+	if(m_bgBlockList.size()<2)
+		return false;
+
+	m_followIter = m_curIter;
+	m_followIter++;
+
+	if(m_followIter == m_bgBlockList.end())
+		m_followIter = m_bgBlockList.begin();
+
+	m_isScrolling = true;
+	m_velocity    = velocity;
+
+	return true;
+}
+
+bool ScrollingBackground::scrollToNextBgBlock(float velocity)
+{
+	if(!beginScroll(velocity))
+		return false;
+
+	m_bScrollToNext = true;
+
+	return true;
+}
+
+bool ScrollingBackground::setBgBlockScrollBy(float velocity,float distance)
+{
+	if(!beginScroll(velocity))
+		return false;
+
+	m_distance  = abs(distance);
+	m_bScrollBy = true;
+
+	return true;
+}
+
+void ScrollingBackground::preSetCurPos()
+{
+	if(m_velocity)
 	{
-	case SD_RIGHT_TO_LEFT:
-		return  (pos.x < (-1.0f + achorPoint.x) * m_visibleSize.width);
+		ListIter preIter = m_curIter;
 
-	case SD_LEFT_TO_RIGHT:
-		return  (pos.x > (1.0f + achorPoint.x) * m_visibleSize.width);
+		if(preIter == m_bgBlockList.begin())
+			preIter = m_bgBlockList.end();
+			
+		preIter--;
 
+		CCPoint aPointCur = (*m_curIter)->getAnchorPoint();
+		CCPoint posCur  = (*m_curIter)->getPosition();
 
-	case SD_TOP_TO_BOTTOM:
-		return  (pos.y < (-1.0f + achorPoint.y) * m_visibleSize.height);
+		CCPoint aPointPre = (*preIter)->getAnchorPoint();
+		CCPoint posPre;
 
+		switch(m_direction)
+		{
+		case SD_RIGHT_TO_LEFT:
+			posPre.x = posCur.x - aPointCur.x * m_visibleSize.width - (1.0f - aPointPre.x) * m_visibleSize.width;
+			posPre.y = aPointPre.y * m_visibleSize.height;
+			break;
 
-	case SD_BOTTOM_TO_TOP:
-		return  (pos.y > (1.0f + achorPoint.y) * m_visibleSize.height);
+		case SD_LEFT_TO_RIGHT:
+			posPre.x = posCur.x + (1.0f - aPointCur.x) * m_visibleSize.width + aPointPre.x * m_visibleSize.width;
+			posPre.y = aPointPre.y * m_visibleSize.height;
+			break;
 
-	default:
-		return true;
+		case SD_TOP_TO_BOTTOM:
+			posPre.x = aPointPre.x * m_visibleSize.width;
+			posPre.y = posCur.y - aPointCur.y * m_visibleSize.height - (1.0f - aPointPre.y) * m_visibleSize.height;
+			break;
+
+		case SD_BOTTOM_TO_TOP:
+			posPre.x = aPointPre.x * m_visibleSize.width;
+			posPre.y = posCur.y + (1.0f - aPointCur.y) * m_visibleSize.height + aPointPre.y * m_visibleSize.height;
+			break;
+		}
+
+		(*preIter)->setVisible(true);
+		(*preIter)->setPosition(posPre);
+	}
+}
+
+bool ScrollingBackground::bChangeBg(const CCPoint& posCur,const CCPoint& achorPointCur)
+{
+	if(m_velocity>0.0f)
+	{
+		switch(m_direction)
+		{
+		case SD_RIGHT_TO_LEFT:
+			return  (posCur.x < (-1.0f + achorPointCur.x) * m_visibleSize.width);
+
+		case SD_LEFT_TO_RIGHT:
+			return  (posCur.x > (1.0f + achorPointCur.x) * m_visibleSize.width);
+
+		case SD_TOP_TO_BOTTOM:
+			return  (posCur.y < (-1.0f + achorPointCur.y) * m_visibleSize.height);
+
+		case SD_BOTTOM_TO_TOP:
+			return  (posCur.y > (1.0f + achorPointCur.y) * m_visibleSize.height);
+
+		default:
+			return true;
+		}
+	}
+	else
+	{
+		switch(m_direction)
+		{
+		case SD_RIGHT_TO_LEFT:
+			return  (posCur.x > achorPointCur.x * m_visibleSize.width);
+			
+		case SD_LEFT_TO_RIGHT:
+			return  (posCur.x < achorPointCur.x * m_visibleSize.width);
+
+		case SD_TOP_TO_BOTTOM:
+			return  (posCur.y > achorPointCur.y * m_visibleSize.height);
+
+		case SD_BOTTOM_TO_TOP:
+			return  (posCur.y < achorPointCur.y * m_visibleSize.height);
+
+		default:
+			return true;
+		}
 	}
 }
 
 void ScrollingBackground::moveAction(float d)
 {
-	if(!m_isScrolling || !m_thisListNode)
+	if(!m_isScrolling)
 		return;
 
-	NodeList* pF = m_thisListNode;
-	NodeList* pL = m_thisListNode->_next;
+	CCPoint posCur  = (*m_curIter)->getPosition();
+	CCPoint aPosCur = (*m_curIter)->getAnchorPoint();
 
-	CCPoint posF  = pF->_pNode->getPosition();
-	CCPoint aPosF = pF->_pNode->getAnchorPoint();
-
-	if(isOutOfScreen(posF,aPosF))
-		nodeOutEvent();
+	if(bChangeBg(posCur,aPosCur))
+		changeCurBgBlock();
 	else
 	{
-		switch(m_direct)
+		switch(m_direction)
 		{
 		case SD_RIGHT_TO_LEFT:
-			posF.x-=m_velocity*d;
+			posCur.x-=m_velocity*d;
 			break;
 
 		case SD_LEFT_TO_RIGHT:
-			posF.x+=m_velocity*d;
+			posCur.x+=m_velocity*d;
 			break;
 
 		case SD_TOP_TO_BOTTOM:
-			posF.y-=m_velocity*d;
+			posCur.y-=m_velocity*d;
 			break;
 
 		case SD_BOTTOM_TO_TOP:
-			posF.y+=m_velocity*d;
+			posCur.y+=m_velocity*d;
 			break;
 		}
-		
-		pF->_pNode->setPosition(posF);
+
+		if(m_bScrollBy)
+		{
+			m_distance-=abs(m_velocity)*d;
+			if(m_distance<0.0f)
+			{
+				m_isScrolling = false;
+				m_bScrollBy   = false;
+			}
+		}
+
+		(*m_curIter)->setPosition(posCur);
 	}
 
-	if(m_thisListNode)
-		setLastNodePosition();
+	if(m_bgBlockList.size()>1)
+		setFollowNodePosition();
 }
 
 bool ScrollingBackground::addBackgroundBlock(CCNode* bgBlock)
 {
-	if(!m_blockList)
+	if(m_bgBlockList.size()>1 && (*m_curIter) == m_bgBlockList.back())
 		return false;
 
 	CCSize size = bgBlock->getContentSize();
@@ -187,77 +239,122 @@ bool ScrollingBackground::addBackgroundBlock(CCNode* bgBlock)
 
 void ScrollingBackground::addListNode(CCNode* bgBlock)
 {
-	if(m_blockList->_pNode !=0)
+	if(m_bgBlockList.empty())
 	{
-		NodeList* newNode = new NodeList;
-		newNode->_pNode   = bgBlock;
+		//设置第一个画面
+		CCPoint anchorPoint = bgBlock->getAnchorPoint();
+		CCPoint pos(anchorPoint.x * m_visibleSize.width,
+				    anchorPoint.y * m_visibleSize.height);
 
-		if(m_type ==ST_CYCLE)
-			newNode->_next    = m_blockList;
-		else
-			newNode->_next = 0;
-		
-		m_lastListNode->_next = newNode;
-		m_lastListNode		  = newNode;
+		bgBlock->setVisible(true);
+		bgBlock->setPosition(pos);
+
+		m_bgBlockList.push_back(bgBlock);
+		m_curIter = m_bgBlockList.begin();
+	}
+	else
+		m_bgBlockList.push_back(bgBlock);
+}
+
+void ScrollingBackground::changeCurBgBlock()
+{
+	CCNode* bgLeave;
+
+	if(m_velocity>0.0f)
+	{
+		bgLeave = (*m_curIter);
+		(*m_curIter)->setVisible(false);
+
+		m_curIter++;
+		if(m_curIter == m_bgBlockList.end())
+			m_curIter = m_bgBlockList.begin();
+
+		m_followIter = m_curIter;
+		m_followIter++;
+		if(m_followIter == m_bgBlockList.end())
+			m_followIter = m_bgBlockList.begin();
 	}
 	else
 	{
-		m_blockList->_pNode = bgBlock;
+		bgLeave = (*m_followIter);
+		(*m_followIter)->setVisible(false);
+
+		preSetCurPos();
+		m_followIter = m_curIter;
+
+		if(m_curIter == m_bgBlockList.begin())
+			m_curIter = m_bgBlockList.end();
+
+		m_curIter--;
 	}
-}
-
-void ScrollingBackground::nodeOutEvent()
-{
-	m_thisListNode = m_thisListNode->_next;
-
-	if(m_type == ST_ONE_WAY)
+	
+	if(m_bScrollToNext)
 	{
-		this->removeChild(m_blockList->_pNode);
-		CC_SAFE_DELETE(m_blockList);
+		m_isScrolling   = false;
+		m_bScrollToNext = false;
+		setFullScreen(m_velocity>0.0f?(*m_curIter):(*m_followIter));
+	}
 
-		m_blockList = m_thisListNode;
-
-		if(m_eventListener && m_eventSelector)
-			(m_eventListener->*m_eventSelector)();
+	if(m_eventListener)
+	{
+		CCNode* pCur    = m_curIter!=m_bgBlockList.end() ? (*m_curIter):0;
+		CCNode* pFollow = m_followIter!=m_bgBlockList.end() ? (*m_followIter):0;
+		(m_eventListener->*m_eventSelector)(pCur,pFollow,bgLeave);
 	}
 }
 
-void ScrollingBackground::setLastNodePosition()
+void ScrollingBackground::setFollowNodePosition()
 {
-	CCPoint posF = m_thisListNode->_pNode->getPosition();
-	CCPoint aPosF = m_thisListNode->_pNode->getAnchorPoint();
+	CCPoint aPointCur = (*m_curIter)->getAnchorPoint();
+	CCPoint posCur    = (*m_curIter)->getPosition();
 
-	if(m_thisListNode->_next==0 || m_thisListNode->_next==m_thisListNode)
-		return;
+	CCPoint aPointFollow = (*m_followIter)->getAnchorPoint();
+	CCPoint posFollow;
 
-	CCNode* pNodeL = m_thisListNode->_next->_pNode;
-	CCPoint aPosL  = pNodeL->getAnchorPoint();
-	CCPoint pos;
-
-	switch(m_direct)
+	switch(m_direction)
 	{
 	case SD_RIGHT_TO_LEFT:
-		pos.x = posF.x + (1.0f - aPosF.x) * m_visibleSize.width + aPosL.x * m_visibleSize.width;
-		pos.y = aPosL.y * m_visibleSize.height;
+		posFollow.x = posCur.x + (1.0f - aPointCur.x) * m_visibleSize.width + aPointFollow.x * m_visibleSize.width;
+		posFollow.y = aPointFollow.y * m_visibleSize.height;
 		break;
 
 	case SD_LEFT_TO_RIGHT:
-		pos.x = posF.x - aPosF.x * m_visibleSize.width - (1.0f - aPosL.x) * m_visibleSize.width;
-		pos.y = aPosL.y * m_visibleSize.height;
+		posFollow.x = posCur.x - aPointCur.x * m_visibleSize.width - (1.0f - aPointFollow.x) * m_visibleSize.width;
+		posFollow.y = aPointFollow.y * m_visibleSize.height;
 		break;
 
 	case SD_TOP_TO_BOTTOM:
-		pos.x = aPosL.x * m_visibleSize.width;
-		pos.y = posF.y + (1.0f - aPosF.y) * m_visibleSize.height + aPosL.y * m_visibleSize.height;
+		posFollow.x = aPointFollow.x * m_visibleSize.width;
+		posFollow.y = posCur.y + (1.0f - aPointCur.y) * m_visibleSize.height + aPointFollow.y * m_visibleSize.height;
 		break;
 
 	case SD_BOTTOM_TO_TOP:
-		pos.x = aPosL.x * m_visibleSize.width;
-		pos.y = posF.y - aPosF.y * m_visibleSize.height - (1.0f - aPosL.y) * m_visibleSize.height;
+		posFollow.x = aPointFollow.x * m_visibleSize.width;
+		posFollow.y = posCur.y - aPointCur.y * m_visibleSize.height - (1.0f - aPointFollow.y) * m_visibleSize.height;
 		break;
 	}
 
-	pNodeL->setVisible(true);
-	pNodeL->setPosition(pos);
+	(*m_followIter)->setVisible(true);
+	(*m_followIter)->setPosition(posFollow);
 }
 
+void ScrollingBackground::setFullScreen(CCNode* bgBlock)
+{
+	CCPoint anchorPoint = bgBlock->getAnchorPoint();
+	CCPoint pos(anchorPoint.x * m_visibleSize.width,
+				anchorPoint.y * m_visibleSize.height);
+
+	bgBlock->setVisible(true);
+	bgBlock->setPosition(pos);
+}
+
+bool ScrollingBackground::removeBgBlock(CCNode* bgBlock)
+{
+	if(m_bgBlockList.size()>2 && bgBlock!=(*m_curIter) && bgBlock!=(*m_followIter))
+	{
+		m_bgBlockList.remove(bgBlock);
+		this->removeChild(bgBlock);
+		return true;
+	}
+	return false;
+}
