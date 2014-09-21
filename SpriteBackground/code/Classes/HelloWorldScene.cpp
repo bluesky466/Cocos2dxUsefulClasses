@@ -462,9 +462,15 @@ void HelloWorld::dropBgChangeCallback(CCSprite* current,CCSprite* follow,CCSprit
 {
 	//将彻底离开屏幕的背景精灵移除
 	m_bg->removeBgSprite(leave);
-	setTextTips(current);
+	
+	if(m_bg->getVelocity()>0.0f)
+		m_bgSprite = current; //current是正方向上先离开屏幕的那个画面
+	else
+		m_bgSprite = follow;  //follow是负方向上先离开屏幕的那个画面
 
-	switch(current->getTag())
+	setTextTips(m_bgSprite);
+
+	switch(m_bgSprite->getTag())
 	{
 	case 2:
 		m_pItem->setAnchorPoint(ccp(0.0f,0.0f));
