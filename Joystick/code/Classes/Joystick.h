@@ -4,7 +4,10 @@
 #include "cocos2d.h"
 USING_NS_CC;
 
-typedef void (CCObject::*SEL_JoystickEvent)(float interval,float x, float y);
+enum JoystickEventType{JET_TOUCH_BEGIN,JET_TOUCH_MOVE,JET_TOUCH_END};
+
+//interval是时间间隔,传入的x、y的范围都是0-1.0F,JoystickEventType是类型（开始,移动,结束）
+typedef void (CCObject::*SEL_JoystickEvent)(float interval,float x, float y,JoystickEventType type);
 #define joystickEvent_selector(_SELECTOR) (SEL_JoystickEvent)(&_SELECTOR)
 
 /**
@@ -14,7 +17,7 @@ typedef void (CCObject::*SEL_JoystickEvent)(float interval,float x, float y);
 class Joystick : public CCNode,public CCTargetedTouchDelegate
 {
 public:
-	Joystick(){}
+	Joystick():m_bMove(false){}
 	virtual ~Joystick(){}
 
 	/**
@@ -46,6 +49,7 @@ protected:
 
 	float m_bgRadius;      ///<底盘的半径
 	float m_handleRadius;  ///<摇杆的半径
+	bool  m_bMove;		   ///<摇杆是否正在移动
 
 	CCPoint m_handlePos;   ///<摇杆在底盘坐标系的坐标
 

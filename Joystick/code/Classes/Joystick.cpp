@@ -59,7 +59,15 @@ bool Joystick::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent)
 	
 	//判断触点是否在摇杆上
 	if(point.x*point.x+point.y*point.y < m_handleRadius*m_handleRadius)
+	{
+		m_bMove = true;
+
+		CCPoint pos = m_handle->getPosition();
+		if(m_touchEventListener && m_touchEventSelector)
+			(m_touchEventListener->*m_touchEventSelector)(0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_BEGIN);
+		
 		return true;
+	}
 	else
 		return false;
 }
@@ -80,12 +88,24 @@ void Joystick::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent)
 
 void Joystick::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent)
 {
+	CCPoint pos = m_handle->getPosition();
+	if(m_touchEventListener && m_touchEventSelector)
+			(m_touchEventListener->*m_touchEventSelector)(0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_END);
+
 	m_handle->setPosition(ccp(0.0f,0.0f));
+
+	m_bMove = false;
 }
 
 void Joystick::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent)
 {
+	CCPoint pos = m_handle->getPosition();
+	if(m_touchEventListener && m_touchEventSelector)
+			(m_touchEventListener->*m_touchEventSelector)(0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_END);
+	
 	m_handle->setPosition(ccp(0.0f,0.0f));
+
+	m_bMove = false;
 }
 
 void Joystick::onEnter()
@@ -102,9 +122,12 @@ void Joystick::onExit()
 
 void Joystick::callHandleEvent(float interval)
 {
-	//调用摇杆事件处理方法
-	CCPoint point = m_handle->getPosition();
+	if(m_bMove)
+	{
+		//调用摇杆事件处理方法
+		CCPoint point = m_handle->getPosition();
 
-	if(m_touchEventListener && m_touchEventSelector)
-		(m_touchEventListener->*m_touchEventSelector)(interval,point.x/m_bgRadius,point.y/m_bgRadius);
+		if(m_touchEventListener && m_touchEventSelector)
+			(m_touchEventListener->*m_touchEventSelector)(interval,point.x/m_bgRadius,point.y/m_bgRadius,JET_TOUCH_MOVE);
+	}
 }
