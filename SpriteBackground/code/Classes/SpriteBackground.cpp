@@ -1,8 +1,8 @@
-#include "ScrollingBackground.h"
+#include "SpriteBackground.h"
 
-ScrollingBackground* ScrollingBackground::create(ScrollDirection direction)
+SpriteBackground* SpriteBackground::create(ScrollDirection direction)
 { 
-    ScrollingBackground *pRet = new ScrollingBackground; 
+    SpriteBackground *pRet = new SpriteBackground; 
     if (pRet && pRet->init(direction)) 
     { 
         pRet->autorelease(); 
@@ -16,43 +16,46 @@ ScrollingBackground* ScrollingBackground::create(ScrollDirection direction)
     } 
 }
 
-ScrollingBackground::ScrollingBackground():
-	m_eventListener(0),
-	m_eventSelector(0),
+SpriteBackground::SpriteBackground():
+	m_changeEventListener(0),
+	m_changeEventSelector(0),
+	m_moveEventListener(0),
+    m_moveEventSelector(0),
+	m_sensitivity(10.0f),
 	m_isScrolling(false),
 	m_bScrollToNext(false),
 	m_bScrollBy(false)
 {
-	m_bgBlockList.clear();
+	m_bgSpriteList.clear();
 }
 
-ScrollingBackground::~ScrollingBackground()
+SpriteBackground::~SpriteBackground()
 {
-	m_bgBlockList.clear();
+	m_bgSpriteList.clear();
 }
 
-bool ScrollingBackground::init(ScrollDirection direction)
+bool SpriteBackground::init(ScrollDirection direction)
 {
 	if(!CCNode::init())
 		return false;
 
 	m_direction   = direction;
 	m_visibleSize = CCDirector::sharedDirector()->getVisibleSize();
-	this->schedule(schedule_selector(ScrollingBackground::moveAction));
+	this->schedule(schedule_selector(SpriteBackground::moveAction));
 
 	return true;
 }
 
-bool ScrollingBackground::beginScroll(float velocity)
+bool SpriteBackground::beginScroll(float velocity)
 {
-	if(m_bgBlockList.size()<2)
+	if(m_bgSpriteList.size()<2)
 		return false;
 
 	m_followIter = m_curIter;
 	m_followIter++;
 
-	if(m_followIter == m_bgBlockList.end())
-		m_followIter = m_bgBlockList.begin();
+	if(m_followIter == m_bgSpriteList.end())
+		m_followIter = m_bgSpriteList.begin();
 
 	m_isScrolling = true;
 	m_velocity    = velocity;
@@ -60,17 +63,17 @@ bool ScrollingBackground::beginScroll(float velocity)
 	return true;
 }
 
-bool ScrollingBackground::scrollToNextBgBlock(float velocity)
+bool SpriteBackground::scrollToNextBgSprite(float velocity)
 {
 	if(!beginScroll(velocity))
 		return false;
 
 	m_bScrollToNext = true;
-
+	m_distance      = 0.0f;
 	return true;
 }
 
-bool ScrollingBackground::setBgBlockScrollBy(float velocity,float distance)
+bool SpriteBackground::setBgSpriteScrollBy(float velocity,float distance)
 {
 	if(!beginScroll(velocity))
 		return false;
@@ -81,14 +84,14 @@ bool ScrollingBackground::setBgBlockScrollBy(float velocity,float distance)
 	return true;
 }
 
-void ScrollingBackground::preSetCurPos()
+void SpriteBackground::preSetCurPos()
 {
 	if(m_velocity)
 	{
 		ListIter preIter = m_curIter;
 
-		if(preIter == m_bgBlockList.begin())
-			preIter = m_bgBlockList.end();
+		if(preIter == m_bgSpriteList.begin())
+			preIter = m_bgSpriteList.end();
 			
 		preIter--;
 
@@ -126,7 +129,7 @@ void ScrollingBackground::preSetCurPos()
 	}
 }
 
-bool ScrollingBackground::bChangeBg(const CCPoint& posCur,const CCPoint& achorPointCur)
+bool SpriteBackground::bChangeBg(const CCPoint& posCur,const CCPoint& achorPointCur)
 {
 	if(m_velocity>0.0f)
 	{
@@ -170,7 +173,7 @@ bool ScrollingBackground::bChangeBg(const CCPoint& posCur,const CCPoint& achorPo
 	}
 }
 
-void ScrollingBackground::moveAction(float d)
+void SpriteBackground::moveAction(float d)
 {
 	if(!m_isScrolling)
 		return;
@@ -179,7 +182,7 @@ void ScrollingBackground::moveAction(float d)
 	CCPoint aPosCur = (*m_curIter)->getAnchorPoint();
 
 	if(bChangeBg(posCur,aPosCur))
-		changeCurBgBlock();
+		changeCurBgSprite();
 	else
 	{
 		switch(m_direction)
@@ -210,55 +213,66 @@ void ScrollingBackground::moveAction(float d)
 				m_bScrollBy   = false;
 			}
 		}
+		else if(m_bScrollToNext)
+		{
+			m_distance+=abs(m_velocity)*d;
+		}
 
 		(*m_curIter)->setPosition(posCur);
 	}
 
-	if(m_bgBlockList.size()>1)
+	if(m_bgSpriteList.size()>1)
 		setFollowNodePosition();
+
+	if(m_moveEventListener)
+	{
+		CCSprite* pCur    = m_curIter!=m_bgSpriteList.end() ? (*m_curIter):0;
+		CCSprite* pFollow = m_followIter!=m_bgSpriteList.end() ? (*m_followIter):0;
+		(m_moveEventListener->*m_moveEventSelector)(pCur,pFollow);
+	}
 }
 
-bool ScrollingBackground::addBackgroundBlock(CCNode* bgBlock)
+bool SpriteBackground::addBackgroundSprite(CCSprite* bgSprite)
 {
-	if(m_bgBlockList.size()>1 && (*m_curIter) == m_bgBlockList.back())
+	if(m_bgSpriteList.size()>1 && (*m_curIter) == m_bgSpriteList.back())
 		return false;
 
-	CCSize size = bgBlock->getContentSize();
+	CCSize size = bgSprite->getContentSize();
 
-	bgBlock->setScaleX(m_visibleSize.width  / size.width);
-	bgBlock->setScaleY(m_visibleSize.height / size.height);
+	bgSprite->setScaleX(m_visibleSize.width  / size.width);
+	bgSprite->setScaleY(m_visibleSize.height / size.height);
 
-	bgBlock->setVisible(false);
+	bgSprite->setVisible(false);
 
-	this->addChild(bgBlock);
+	this->addChild(bgSprite);
 
-	addListNode(bgBlock);
+	addListNode(bgSprite);
 
 	return true;
 }
 
-void ScrollingBackground::addListNode(CCNode* bgBlock)
+void SpriteBackground::addListNode(CCSprite* bgSprite)
 {
-	if(m_bgBlockList.empty())
+	if(m_bgSpriteList.empty())
 	{
 		//设置第一个画面
-		CCPoint anchorPoint = bgBlock->getAnchorPoint();
+		CCPoint anchorPoint = bgSprite->getAnchorPoint();
 		CCPoint pos(anchorPoint.x * m_visibleSize.width,
 				    anchorPoint.y * m_visibleSize.height);
 
-		bgBlock->setVisible(true);
-		bgBlock->setPosition(pos);
+		bgSprite->setVisible(true);
+		bgSprite->setPosition(pos);
 
-		m_bgBlockList.push_back(bgBlock);
-		m_curIter = m_bgBlockList.begin();
+		m_bgSpriteList.push_back(bgSprite);
+		m_curIter = m_bgSpriteList.begin();
 	}
 	else
-		m_bgBlockList.push_back(bgBlock);
+		m_bgSpriteList.push_back(bgSprite);
 }
 
-void ScrollingBackground::changeCurBgBlock()
+void SpriteBackground::changeCurBgSprite()
 {
-	CCNode* bgLeave;
+	CCSprite* bgLeave;
 
 	if(m_velocity>0.0f)
 	{
@@ -266,13 +280,13 @@ void ScrollingBackground::changeCurBgBlock()
 		(*m_curIter)->setVisible(false);
 
 		m_curIter++;
-		if(m_curIter == m_bgBlockList.end())
-			m_curIter = m_bgBlockList.begin();
+		if(m_curIter == m_bgSpriteList.end())
+			m_curIter = m_bgSpriteList.begin();
 
 		m_followIter = m_curIter;
 		m_followIter++;
-		if(m_followIter == m_bgBlockList.end())
-			m_followIter = m_bgBlockList.begin();
+		if(m_followIter == m_bgSpriteList.end())
+			m_followIter = m_bgSpriteList.begin();
 	}
 	else
 	{
@@ -282,28 +296,29 @@ void ScrollingBackground::changeCurBgBlock()
 		preSetCurPos();
 		m_followIter = m_curIter;
 
-		if(m_curIter == m_bgBlockList.begin())
-			m_curIter = m_bgBlockList.end();
+		if(m_curIter == m_bgSpriteList.begin())
+			m_curIter = m_bgSpriteList.end();
 
 		m_curIter--;
 	}
 	
-	if(m_bScrollToNext)
+	if(m_bScrollToNext && m_distance>m_sensitivity)
 	{
+		m_distance      = 0.0f;
 		m_isScrolling   = false;
 		m_bScrollToNext = false;
 		setFullScreen(m_velocity>0.0f?(*m_curIter):(*m_followIter));
 	}
 
-	if(m_eventListener)
+	if(m_changeEventListener)
 	{
-		CCNode* pCur    = m_curIter!=m_bgBlockList.end() ? (*m_curIter):0;
-		CCNode* pFollow = m_followIter!=m_bgBlockList.end() ? (*m_followIter):0;
-		(m_eventListener->*m_eventSelector)(pCur,pFollow,bgLeave);
+		CCSprite* pCur    = m_curIter!=m_bgSpriteList.end() ? (*m_curIter):0;
+		CCSprite* pFollow = m_followIter!=m_bgSpriteList.end() ? (*m_followIter):0;
+		(m_changeEventListener->*m_changeEventSelector)(pCur,pFollow,bgLeave);
 	}
 }
 
-void ScrollingBackground::setFollowNodePosition()
+void SpriteBackground::setFollowNodePosition()
 {
 	CCPoint aPointCur = (*m_curIter)->getAnchorPoint();
 	CCPoint posCur    = (*m_curIter)->getPosition();
@@ -338,7 +353,7 @@ void ScrollingBackground::setFollowNodePosition()
 	(*m_followIter)->setPosition(posFollow);
 }
 
-void ScrollingBackground::setFullScreen(CCNode* bgBlock)
+void SpriteBackground::setFullScreen(CCSprite* bgBlock)
 {
 	CCPoint anchorPoint = bgBlock->getAnchorPoint();
 	CCPoint pos(anchorPoint.x * m_visibleSize.width,
@@ -348,11 +363,11 @@ void ScrollingBackground::setFullScreen(CCNode* bgBlock)
 	bgBlock->setPosition(pos);
 }
 
-bool ScrollingBackground::removeBgBlock(CCNode* bgBlock)
+bool SpriteBackground::removeBgSprite(CCSprite* bgBlock)
 {
-	if(m_bgBlockList.size()>2 && bgBlock!=(*m_curIter) && bgBlock!=(*m_followIter))
+	if(m_bgSpriteList.size()>2 && bgBlock!=(*m_curIter) && bgBlock!=(*m_followIter))
 	{
-		m_bgBlockList.remove(bgBlock);
+		m_bgSpriteList.remove(bgBlock);
 		this->removeChild(bgBlock);
 		return true;
 	}
