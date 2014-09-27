@@ -1,0 +1,9 @@
+﻿一个简单的shader特效类，只是修改颜色。
+实现的特效有：
+ES_NONE               //没有特效
+ES_BLACK_AND_WHITE    //黑白化
+ES_OLD_PHOTOS         //老照片
+ES_INVERT             //反相
+ES_BURNS              //灼伤（偏红）
+ES_POISONING          //中毒（偏绿）
+ES_COLD               //寒冷（偏蓝）
