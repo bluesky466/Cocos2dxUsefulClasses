@@ -25,22 +25,14 @@ public:
 	bool setShaderProgram(CCNode*);
 
 	///选择效果
-	void setEffect(int sel)
-	{
-		m_program->use();
-		m_program->setUniformLocationWith1i(m_maxSel,sel);
-	}
+	void setEffect(int sel);
 
 	///选择效果
-	void setEffect(EffectSelect sel)
-	{
-		m_program->use();
-		m_program->setUniformLocationWith1i(m_maxSel,sel);
-	}
+	void setEffect(EffectSelect sel);
 
 private:
-	GLint		 m_maxSel;
 	CCGLProgram* m_program;
+	GLint		 m_matrixEffect;
 };
 
 #endif

@@ -1,58 +1,75 @@
 #include "FragmentEffect.h"
 
-const GLchar* pszFragSource =
-				"#ifdef GL_ES													\n \
-				precision mediump float;										\n \
-				#endif															\n \
-				uniform sampler2D u_texture;									\n \
-				uniform int sel;												\n \
-				varying vec2 v_texCoord;										\n \
-				varying vec4 v_fragmentColor;									\n \
-				const mat4 m[7] = {mat4(1.0, 0.0, 0.0, 0.0,						\n \
-										0.0, 1.0, 0.0, 0.0,						\n \
-										0.0, 0.0, 1.0, 0.0,						\n \
-										0.0, 0.0, 0.0, 1.0),					\n \
-																				\n \
-								   mat4(0.299, 0.587, 0.184, 0.0,				\n \
-										0.299, 0.587, 0.184, 0.0,				\n \
-										0.299, 0.587, 0.184, 0.0,				\n \
-										0.0,   0.0,   0.0,   1.0),				\n \
-																				\n \
-							       mat4(0.299, 0.587, 0.184, 0.3137,			\n \
-										0.299, 0.587, 0.184, 0.1686,			\n \
-										0.299, 0.587, 0.184,-0.0901,			\n \
-										0.0,   0.0,   0.0,   1.0),				\n \
-																				\n \
-								   mat4(-1.0, 0.0, 0.0, 1.0,				    \n \
-										 0.0,-1.0, 0.0, 1.0,				    \n \
-										 0.0, 0.0,-1.0, 1.0,				    \n \
-										 0.0, 0.0, 0.0, 1.0),			        \n \
-																				\n \
-								   mat4(1.0,  0.0, 0.0, 0.0,				    \n \
-										0.0,  0.6, 0.0, 0.0,				    \n \
-										0.0,  0.0, 0.6, 0.0,				    \n \
-										1.0,  0.0, 0.0, 1.0),			        \n \
-																				\n \
-								   mat4(0.6, 0.0, 0.0, 0.0,				        \n \
-										0.0,  1.0, 0.0, 0.0,				    \n \
-										0.0,  0.0, 0.6, 0.0,				    \n \
-										0.0,  1.0, 0.0, 1.0),			        \n \
-																				\n \
-								   mat4(0.6,  0.0, 0.0, 0.0,				    \n \
-										0.0,  0.6, 0.0, 0.0,				    \n \
-										0.0,  0.0, 1.0, 0.0,				    \n \
-										0.0,  0.0, 1.0, 1.0)};			        \n \
-				void main(void)													\n \
-				{																\n \
-					gl_FragColor = mul(texture2D(u_texture, v_texCoord),m[sel]);\n \
-				}";
+GLfloat transformMatrix[][16] = 
+{
+	{
+		1.0, 0.0, 0.0, 0.0,						
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0
+	},
+
+	{
+		0.299, 0.587, 0.184, 0.0,
+		0.299, 0.587, 0.184, 0.0,
+		0.299, 0.587, 0.184, 0.0,
+		0.0,   0.0,   0.0,   1.0
+	},
+
+	{
+		0.299, 0.587, 0.184, 0.3137,
+		0.299, 0.587, 0.184, 0.1686,
+		0.299, 0.587, 0.184,-0.0901,
+		0.0,   0.0,   0.0,   1.0
+	},
+
+	{
+		-1.0, 0.0, 0.0, 1.0,
+		0.0,-1.0, 0.0, 1.0,
+		0.0, 0.0,-1.0, 1.0,
+		0.0, 0.0, 0.0, 1.0
+	},
+
+	{
+		1.0,  0.0, 0.0, 0.0,
+		0.0,  0.6, 0.0, 0.0,
+		0.0,  0.0, 0.6, 0.0,
+		1.0,  0.0, 0.0, 1.0
+	},
+
+	{
+		0.6, 0.0, 0.0, 0.0,
+		0.0,  1.0, 0.0, 0.0,
+		0.0,  0.0, 0.6, 0.0,
+		0.0,  1.0, 0.0, 1.0
+	},
+
+	{
+		0.6,  0.0, 0.0, 0.0,
+		0.0,  0.6, 0.0, 0.0,
+		0.0,  0.0, 1.0, 0.0,
+		0.0,  0.0, 1.0, 1.0
+	}
+};
 
 bool FragmentEffect::setShaderProgram(CCNode* pNode)
 {
 	do
 	{
 		m_program = new CCGLProgram();
-		
+		GLchar* pszFragSource =
+				"#ifdef GL_ES													  \n \
+				precision mediump float;										  \n \
+				#endif															  \n \
+				uniform sampler2D u_texture;									  \n \
+				varying vec2 v_texCoord;										  \n \
+				varying vec4 v_fragmentColor;									  \n \
+				uniform mat4 matrixEffect;										  \n \
+				void main(void)													  \n \
+				{																  \n \
+					gl_FragColor = texture2D(u_texture, v_texCoord)*matrixEffect; \n \
+				}";
+
 		m_program->initWithVertexShaderByteArray(ccPositionTextureColor_vert, //顶点找色器,这里是引擎自带的
 												 pszFragSource);              //像素找色器,这里是自己写的
 
@@ -81,8 +98,8 @@ bool FragmentEffect::setShaderProgram(CCNode* pNode)
 		CHECK_GL_ERROR_DEBUG();
 
 		m_program->use();
-		m_maxSel =  m_program->getUniformLocationForName("sel");
-		m_program->setUniformLocationWith1i(m_maxSel,0);
+		m_matrixEffect =  m_program->getUniformLocationForName("matrixEffect");
+		m_program->setUniformLocationWithMatrix4fv(m_matrixEffect,transformMatrix[0],1);
 
 		return true;
 
@@ -91,3 +108,16 @@ bool FragmentEffect::setShaderProgram(CCNode* pNode)
 	return false;
 }
 
+///选择效果
+void FragmentEffect::setEffect(int sel)
+{
+	m_program->use();
+	m_program->setUniformLocationWithMatrix4fv(m_matrixEffect,transformMatrix[sel],1);
+}
+
+///选择效果
+void FragmentEffect::setEffect(EffectSelect sel)
+{
+	m_program->use();
+	m_program->setUniformLocationWithMatrix4fv(m_matrixEffect,transformMatrix[sel],1);
+}

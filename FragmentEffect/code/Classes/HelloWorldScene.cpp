@@ -106,6 +106,7 @@ bool HelloWorld::init()
 
 void HelloWorld::toggleCallback(CCObject* pSender)
 {
+	
 	int sel = m_sel->getSelectedIndex();
 
 	int tag = ((CCNode*)pSender)->getTag();
