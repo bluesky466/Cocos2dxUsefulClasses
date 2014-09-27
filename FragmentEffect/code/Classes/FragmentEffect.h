@@ -16,7 +16,7 @@ enum EffectSelect{ES_NONE              = 0,  //没有特效
 
 /**
  * 简单的片段渲染效果
- * 先调用 setEffect 方法设置shader代码，再调用 setEffect 选择效果
+ * 先调用 setEffect 方法传入节点设置shader代码，再调用 setEffect 选择效果
  */
 class FragmentEffect
 {

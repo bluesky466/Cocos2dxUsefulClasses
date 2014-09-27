@@ -2,8 +2,12 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
-#include "EffectSprite.h"
+#include "cocos-ext.h"
+#include "FragmentEffect.h"
 
+USING_NS_CC;
+USING_NS_CC_EXT;
+using namespace ui;
 class HelloWorld : public cocos2d::CCLayer
 {
 public:
@@ -22,7 +26,7 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
-	 EffectSprite* m_sprite;
+	 FragmentEffect m_spriteEffect;
 	 CCMenuItemToggle* m_sel;
 };
 

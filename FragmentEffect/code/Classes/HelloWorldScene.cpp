@@ -1,7 +1,7 @@
 #include "HelloWorldScene.h"
 
 
-USING_NS_CC;
+
 
 CCScene* HelloWorld::scene()
 {
@@ -85,11 +85,21 @@ bool HelloWorld::init()
     this->addChild(pMenu, 1);
 
 
-	//就这几句是设置效果精灵的，toggleCallback方法里面也有
-    m_sprite= EffectSprite::create("HelloWorld.png");
-    m_sprite->setPosition(ccp(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-    this->addChild(m_sprite, 0);
-    
+    CCSprite* sprite= CCSprite::create("HelloWorld.png");
+    sprite->setPosition(ccp(visibleSize.width/2, visibleSize.height/2));
+    this->addChild(sprite, 0);
+	
+	//加载骨骼动画
+	CCArmatureDataManager::sharedArmatureDataManager()->addArmatureFileInfo("Hero0.png","Hero0.plist","Hero.ExportJson");
+	CCArmature *armature = CCArmature::create("Hero");
+	armature->getAnimation()->playByIndex(0);
+	armature->setPosition(ccp(visibleSize.width/2, 0.0f));
+	armature->setAnchorPoint(ccp(0.5f,0.0f));
+	this->addChild(armature,1);
+
+	//就这句是设置效果的，toggleCallback方法里面也有
+	m_spriteEffect.setShaderProgram(armature);
+
     return true;
 	
 }
@@ -116,7 +126,7 @@ void HelloWorld::toggleCallback(CCObject* pSender)
 		m_sel->setSelectedIndex(sel);
 	}
 
-	m_sprite->setEffect(sel);
+	m_spriteEffect.setEffect(sel);
 	
 }
 
