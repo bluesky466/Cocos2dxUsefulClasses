@@ -21,13 +21,14 @@ public:
     void menuCloseCallback(CCObject* pSender);
 
     void toggleCallback(CCObject*);
-
+	void gotoUserDefine(CCObject*);
     // implement the "static node()" method manually
     CREATE_FUNC(HelloWorld);
 
 private:
-	 FragmentEffect m_spriteEffect;
 	 CCMenuItemToggle* m_sel;
+	 int               m_index;
+	 CCArmature*       m_armature;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

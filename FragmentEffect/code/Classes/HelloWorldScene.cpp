@@ -18,11 +18,9 @@ CCScene* HelloWorld::scene()
     return scene;
 }
 
-// on "init" you need to initialize your instance
+
 bool HelloWorld::init()
 {
-    //////////////////////////////
-    // 1. super init first
     if ( !CCLayer::init() )
     {
         return false;
@@ -62,9 +60,12 @@ bool HelloWorld::init()
 	CCMenuItemFont* MIF6 = CCMenuItemFont::create("ES_COLD");
 	MIF6->setColor(ccRED);
 	MIF6->setTag(0);
+	CCMenuItemFont* MIF7 = CCMenuItemFont::create("ES_USER_DEFINED");
+	MIF7->setColor(ccRED);
+	MIF7->setTag(0);
 	m_sel = CCMenuItemToggle::createWithTarget(this,
 											menu_selector(HelloWorld::toggleCallback),
-											MIF0,MIF1,MIF2,MIF3,MIF4,MIF5,MIF6,
+											MIF0,MIF1,MIF2,MIF3,MIF4,MIF5,MIF6,MIF7,
 											NULL);
 	m_sel->setTag(0);
 	m_sel->setAnchorPoint(ccp(0.5f,1.0f));
@@ -74,13 +75,18 @@ bool HelloWorld::init()
 	last->setTag(-1);
 	last->setAnchorPoint(ccp(0.5f,1.0f));
 	last->setPosition(ccp(visibleSize.width/10*1, visibleSize.height));
+
 	CCMenuItemImage* next = CCMenuItemImage::create("nextNor.png","nextCli.png",0,this,menu_selector(HelloWorld::toggleCallback));
 	next->setTag(1);
 	next->setAnchorPoint(ccp(0.5f,1.0f));
 	next->setPosition(ccp(visibleSize.width/10*9, visibleSize.height));
 
+	CCMenuItemFont* UDF = CCMenuItemFont::create("goto ES_USER_DEFINED",this,menu_selector(HelloWorld::gotoUserDefine));
+	UDF->setColor(ccRED);
+	UDF->setTag(0);
+	UDF->setPosition(ccp(visibleSize.width/2, visibleSize.height-100));
 
-    CCMenu* pMenu = CCMenu::create(pCloseItem,m_sel,last,next,NULL);
+    CCMenu* pMenu = CCMenu::create(pCloseItem,m_sel,last,next,UDF,NULL);
     pMenu->setPosition(CCPointZero);
     this->addChild(pMenu, 1);
 
@@ -91,14 +97,23 @@ bool HelloWorld::init()
 	
 	//加载骨骼动画
 	CCArmatureDataManager::sharedArmatureDataManager()->addArmatureFileInfo("Hero0.png","Hero0.plist","Hero.ExportJson");
-	CCArmature *armature = CCArmature::create("Hero");
-	armature->getAnimation()->playByIndex(0);
-	armature->setPosition(ccp(visibleSize.width/2, 0.0f));
-	armature->setAnchorPoint(ccp(0.5f,0.0f));
-	this->addChild(armature,1);
+	m_armature = CCArmature::create("Hero");
+	m_armature->getAnimation()->playByIndex(0);
+	m_armature->setPosition(ccp(visibleSize.width/2, 0.0f));
+	m_armature->setAnchorPoint(ccp(0.5f,0.0f));
+	this->addChild(m_armature,1);
 
-	//就这句是设置效果的，toggleCallback方法里面也有
-	m_spriteEffect.setShaderProgram(armature);
+	//就这几句是设置效果的，toggleCallback 和 gotoUserDefine方法里面也有
+	m_index = FragmentEffect::getInstance()->addEffectNode(m_armature); //m_index接收返回的序号，setEffect 和 getEffectSelect 的时候使用
+
+	Matrix44 m = {
+		0.5f,0.0f,0.0f,0.0f,
+		0.0f,0.5f,0.0f,0.0f,
+		0.0f,0.0f,0.0f,0.0f,
+		0.0f,0.0f,0.0f,0.0f
+	};
+
+	FragmentEffect::getInstance()->addEffectMatrix(m);//增加自定义特效矩阵,序号从 ES_USER_DEFINED 开始增加
 
     return true;
 	
@@ -106,7 +121,6 @@ bool HelloWorld::init()
 
 void HelloWorld::toggleCallback(CCObject* pSender)
 {
-	
 	int sel = m_sel->getSelectedIndex();
 
 	int tag = ((CCNode*)pSender)->getTag();
@@ -115,22 +129,32 @@ void HelloWorld::toggleCallback(CCObject* pSender)
 	{
 		sel--;
 		if(sel<0)
-			sel = 6;
+			sel = 7;
 
 		m_sel->setSelectedIndex(sel);
 	}
 	else if(tag>0)
 	{
 		sel++;
-		sel%=7;
+		sel%=8;
 
 		m_sel->setSelectedIndex(sel);
 	}
 
-	m_spriteEffect.setEffect(sel);
+	//FragmentEffect::getInstance()->setEffect(m_armature,sel);
+	//用m_index速度会快很多
+	FragmentEffect::getInstance()->setEffect(m_index,sel);
 	
 }
 
+void HelloWorld::gotoUserDefine(CCObject*)
+{
+	m_sel->setSelectedIndex(7);
+
+	//FragmentEffect::getInstance()->setEffect(m_armature,ES_USER_DEFINED+0);
+	//用m_index速度会快很多
+	FragmentEffect::getInstance()->setEffect(m_index,ES_USER_DEFINED+0);
+}
 
 void HelloWorld::menuCloseCallback(CCObject* pSender)
 {
