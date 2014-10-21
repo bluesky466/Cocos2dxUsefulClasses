@@ -1,5 +1,7 @@
 #include "Joystick.h"
 
+USING_NS_CC;
+
 Joystick* Joystick::create(const char *fnBg,float bgRadius,const char *fnHandle,float handleRadius)
 {
     Joystick *joystick = new Joystick();
