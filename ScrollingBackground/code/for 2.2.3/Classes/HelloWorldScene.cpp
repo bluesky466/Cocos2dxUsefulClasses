@@ -231,19 +231,19 @@ void HelloWorld::okCallback(CCObject* pSender)
 		switch (dirSel)
 		{
 		case 0:
-			m_bg = SpriteBackground::create(SD_RIGHT_TO_LEFT);
+			m_bg = ScrollingBackground::create(SD_RIGHT_TO_LEFT);
 			m_direction = SD_RIGHT_TO_LEFT;
 			break;
 		case 1:
-			m_bg = SpriteBackground::create(SD_LEFT_TO_RIGHT);
+			m_bg = ScrollingBackground::create(SD_LEFT_TO_RIGHT);
 			m_direction = SD_LEFT_TO_RIGHT;
 			break;
 		case 2:
-			m_bg = SpriteBackground::create(SD_TOP_TO_BOTTOM);
+			m_bg = ScrollingBackground::create(SD_TOP_TO_BOTTOM);
 			m_direction = SD_TOP_TO_BOTTOM;
 			break;
 		case 3:
-			m_bg = SpriteBackground::create(SD_BOTTOM_TO_TOP);
+			m_bg = ScrollingBackground::create(SD_BOTTOM_TO_TOP);
 			m_direction = SD_BOTTOM_TO_TOP;
 			break;
 		default:

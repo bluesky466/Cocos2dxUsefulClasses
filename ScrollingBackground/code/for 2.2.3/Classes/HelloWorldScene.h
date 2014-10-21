@@ -2,8 +2,10 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
-#include "SpriteBackground.h"
+#include "ScrollingBackground.h"
 #include <string>
+
+USING_NS_CC;
 
 /**
  * SpriteBackground类的演示demo
@@ -20,9 +22,7 @@ public:
 	void quitCallback(CCObject*);
 
 	///这里是菜单的设置,不用看
-	void createInitMenu();
-
-	///方向选择
+	void createInitMenu();//方向选择
 	void dirChangeCallback(CCObject*);
 
 	///模式选择,循环播放模式和边滚动边丢弃精灵模式
@@ -62,8 +62,8 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
-	SpriteBackground* m_bg;
-	ScrollDirection   m_direction;
+	ScrollingBackground* m_bg;
+	ScrollDirection      m_direction;
 
 	//开始的方向和模式选择菜单
 	CCLayer*          m_setLayer;

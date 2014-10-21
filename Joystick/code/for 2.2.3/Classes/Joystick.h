@@ -1,9 +1,11 @@
 /****************************************************************************
- author: 466474482@qq.com
-
  for cocos2d-x 2.2.3
 
- github: https://github.com/bluesky466/cocos2dxUsefulClasses
+ author : LuoYu
+ 
+ e-mail : 466474482@qq.com
+
+ github : https://github.com/bluesky466/cocos2dxUsefulClasses
  ****************************************************************************/
 
 #ifndef __JOYSTICK_H__

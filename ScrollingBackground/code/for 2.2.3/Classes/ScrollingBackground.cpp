@@ -1,8 +1,10 @@
-#include "SpriteBackground.h"
+#include "ScrollingBackground.h"
 
-SpriteBackground* SpriteBackground::create(ScrollDirection direction)
+USING_NS_CC;
+
+ScrollingBackground* ScrollingBackground::create(ScrollDirection direction)
 { 
-    SpriteBackground *pRet = new SpriteBackground; 
+    ScrollingBackground *pRet = new ScrollingBackground; 
     if (pRet && pRet->init(direction)) 
     { 
         pRet->autorelease(); 
@@ -16,7 +18,7 @@ SpriteBackground* SpriteBackground::create(ScrollDirection direction)
     } 
 }
 
-SpriteBackground::SpriteBackground():
+ScrollingBackground::ScrollingBackground():
 	m_changeEventListener(0),
 	m_changeEventSelector(0),
 	m_moveEventListener(0),
@@ -29,24 +31,24 @@ SpriteBackground::SpriteBackground():
 	m_bgSpriteList.clear();
 }
 
-SpriteBackground::~SpriteBackground()
+ScrollingBackground::~ScrollingBackground()
 {
 	m_bgSpriteList.clear();
 }
 
-bool SpriteBackground::init(ScrollDirection direction)
+bool ScrollingBackground::init(ScrollDirection direction)
 {
 	if(!CCNode::init())
 		return false;
 
 	m_direction   = direction;
 	m_visibleSize = CCDirector::sharedDirector()->getVisibleSize();
-	this->schedule(schedule_selector(SpriteBackground::moveAction));
+	this->schedule(schedule_selector(ScrollingBackground::moveAction));
 
 	return true;
 }
 
-bool SpriteBackground::beginScroll(float velocity)
+bool ScrollingBackground::beginScroll(float velocity)
 {
 	if(m_bgSpriteList.size()<2)
 		return false;
@@ -63,7 +65,7 @@ bool SpriteBackground::beginScroll(float velocity)
 	return true;
 }
 
-bool SpriteBackground::scrollToNextBgSprite(float velocity)
+bool ScrollingBackground::scrollToNextBgSprite(float velocity)
 {
 	if(!beginScroll(velocity))
 		return false;
@@ -73,7 +75,7 @@ bool SpriteBackground::scrollToNextBgSprite(float velocity)
 	return true;
 }
 
-bool SpriteBackground::setBgSpriteScrollBy(float velocity,float distance)
+bool ScrollingBackground::setBgSpriteScrollBy(float velocity,float distance)
 {
 	if(!beginScroll(velocity))
 		return false;
@@ -84,7 +86,7 @@ bool SpriteBackground::setBgSpriteScrollBy(float velocity,float distance)
 	return true;
 }
 
-void SpriteBackground::preSetCurPos()
+void ScrollingBackground::preSetCurPos()
 {
 	if(m_velocity)
 	{
@@ -129,7 +131,7 @@ void SpriteBackground::preSetCurPos()
 	}
 }
 
-bool SpriteBackground::bChangeBg(const CCPoint& posCur,const CCPoint& achorPointCur)
+bool ScrollingBackground::bChangeBg(const CCPoint& posCur,const CCPoint& achorPointCur)
 {
 	if(m_velocity>0.0f)
 	{
@@ -173,7 +175,7 @@ bool SpriteBackground::bChangeBg(const CCPoint& posCur,const CCPoint& achorPoint
 	}
 }
 
-void SpriteBackground::moveAction(float d)
+void ScrollingBackground::moveAction(float d)
 {
 	if(!m_isScrolling)
 		return;
@@ -232,7 +234,7 @@ void SpriteBackground::moveAction(float d)
 	}
 }
 
-bool SpriteBackground::addBackgroundSprite(CCSprite* bgSprite)
+bool ScrollingBackground::addBackgroundSprite(CCSprite* bgSprite)
 {
 	if(m_bgSpriteList.size()>1 && (*m_curIter) == m_bgSpriteList.back())
 		return false;
@@ -251,7 +253,7 @@ bool SpriteBackground::addBackgroundSprite(CCSprite* bgSprite)
 	return true;
 }
 
-void SpriteBackground::addListNode(CCSprite* bgSprite)
+void ScrollingBackground::addListNode(CCSprite* bgSprite)
 {
 	if(m_bgSpriteList.empty())
 	{
@@ -270,7 +272,7 @@ void SpriteBackground::addListNode(CCSprite* bgSprite)
 		m_bgSpriteList.push_back(bgSprite);
 }
 
-void SpriteBackground::changeCurBgSprite()
+void ScrollingBackground::changeCurBgSprite()
 {
 	CCSprite* bgLeave;
 
@@ -318,7 +320,7 @@ void SpriteBackground::changeCurBgSprite()
 	}
 }
 
-void SpriteBackground::setFollowNodePosition()
+void ScrollingBackground::setFollowNodePosition()
 {
 	CCPoint aPointCur = (*m_curIter)->getAnchorPoint();
 	CCPoint posCur    = (*m_curIter)->getPosition();
@@ -353,7 +355,7 @@ void SpriteBackground::setFollowNodePosition()
 	(*m_followIter)->setPosition(posFollow);
 }
 
-void SpriteBackground::setFullScreen(CCSprite* bgBlock)
+void ScrollingBackground::setFullScreen(CCSprite* bgBlock)
 {
 	CCPoint anchorPoint = bgBlock->getAnchorPoint();
 	CCPoint pos(anchorPoint.x * m_visibleSize.width,
@@ -363,7 +365,7 @@ void SpriteBackground::setFullScreen(CCSprite* bgBlock)
 	bgBlock->setPosition(pos);
 }
 
-bool SpriteBackground::removeBgSprite(CCSprite* bgBlock)
+bool ScrollingBackground::removeBgSprite(CCSprite* bgBlock)
 {
 	if(m_bgSpriteList.size()>2 && bgBlock!=(*m_curIter) && bgBlock!=(*m_followIter))
 	{

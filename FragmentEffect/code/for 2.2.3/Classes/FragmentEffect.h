@@ -1,3 +1,13 @@
+/****************************************************************************
+ for cocos2d-x 2.2.3
+
+ author : LuoYu
+ 
+ e-mail : 466474482@qq.com
+
+ github : https://github.com/bluesky466/cocos2dxUsefulClasses
+ ****************************************************************************/
+
 #ifndef __SIMPLE_EFFECT_H__
 #define __SIMPLE_EFFECT_H__
 

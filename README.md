@@ -1,1 +1,1 @@
-some easy and userful classes for cocos2d-x 2.2.3 and VS2012
+some easy and userful classes for cocos2d-x 2.2.3 and cocos2d-x 3.2

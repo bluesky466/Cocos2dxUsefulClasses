@@ -1,9 +1,11 @@
 /****************************************************************************
- author: 466474482@qq.com
-
  for cocos2d-x 3.2
 
- github: https://github.com/bluesky466/cocos2dxUsefulClasses
+ author : LuoYu
+ 
+ e-mail : 466474482@qq.com
+
+ github : https://github.com/bluesky466/cocos2dxUsefulClasses
  ****************************************************************************/
 
 #ifndef _FRAME_MANAGER_H_
