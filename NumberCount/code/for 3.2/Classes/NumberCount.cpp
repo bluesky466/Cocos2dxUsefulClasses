@@ -1,24 +1,33 @@
 #include "NumberCount.h"
 
 USING_NS_CC;
-USING_NS_CC_EXT;
 using namespace ui;
 
 NumberCount::NumberCount():
+	m_ccLabelAtlas(0),
+	m_uiLabelAtlas(0),
 	m_number(0),
 	m_increment(0),
 	m_numberDelta(1),
 	m_timeDelta(0.01f)
 {
-	CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(NumberCount::updateNumber),this,0.0f,false);
+	CCDirector::getInstance()->getScheduler()->schedule(schedule_selector(NumberCount::updateNumber),this,0.0f,false);
 }
 
-void NumberCount::setNumber(int number, bool bGradually)
+bool NumberCount::setNumber(int number, bool bGradually)
 {
+	if(!m_ccLabelAtlas && !m_uiLabelAtlas)
+		return false;
+
 	if(!bGradually)
 	{
 		m_number = number;
-		m_ccLabelAtlas->setString(CCString::createWithFormat("%d",number)->getCString());
+
+		if(m_ccLabelAtlas)
+			m_ccLabelAtlas->setString(__String::createWithFormat("%d",number)->getCString());
+
+		if(m_uiLabelAtlas)
+			m_ccLabelAtlas->setString(__String::createWithFormat("%d",number)->getCString());
 	}
 	else
 	{
@@ -26,11 +35,13 @@ void NumberCount::setNumber(int number, bool bGradually)
 	}
 
 	m_timeEscape = 0.0f;
+	
+	return true;
 }
 
 void NumberCount::updateNumber(float fInterval)
 {
-	if(m_increment==0)
+	if(m_increment==0 || (!m_ccLabelAtlas && !m_uiLabelAtlas))
 		return ;
 
 	if(m_timeEscape > m_timeDelta)
@@ -62,7 +73,12 @@ void NumberCount::updateNumber(float fInterval)
 			}
 		}
 
-		m_ccLabelAtlas->setString(CCString::createWithFormat("%d",m_number)->getCString());
+		if(m_ccLabelAtlas)
+			m_ccLabelAtlas->setString(__String::createWithFormat("%d",m_number)->getCString());
+
+		if(m_uiLabelAtlas)
+			m_ccLabelAtlas->setString(__String::createWithFormat("%d",m_number)->getCString());
+
 		m_timeEscape = 0.0f;
 	}
 	else
