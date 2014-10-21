@@ -60,10 +60,12 @@ bool HelloWorld::init()
 
 
 	/*Frame的测试*/
-
+	
+	Widget* frame = GUIReader::shareReader()->widgetFromJsonFile("UIRes/DemoLogin.ExportJson");
+	
 	UILayer* layer =UILayer::create();
 	layer->setScale(0.8f); //缩放比例可以随便设置
-	layer->addWidget(GUIReader::shareReader()->widgetFromJsonFile("UIRes/DemoLogin.ExportJson"));
+	layer->addWidget(frame);
 	this->addChild(layer);
 
 	//触碰测试
@@ -75,8 +77,8 @@ bool HelloWorld::init()
 	layer->getWidgetByName("confirm_TextField")->addTouchEventListener(this,toucheventselector(HelloWorld::btMenuCallBack));
 
 	//frame初始化,可以试一下不初始化，直接layer->setVisible(false);设置窗口不可见之后,鼠标点击原本的按钮区域，看看是否有对话框出现
-	m_frame.init(layer,(UIImageView*)layer->getWidgetByName("backageImg"));
-	m_frame.setFrameVisble(true);
+	m_frame.setFrame(frame,(UIImageView*)layer->getWidgetByName("backageImg"));
+	m_frame.setFrameVisible(true);
 
 
     return true;
@@ -85,7 +87,7 @@ bool HelloWorld::init()
 
 void HelloWorld::btVisbleCallback(CCObject* pSender)
 {
-	m_frame.setFrameVisble(true);
+	m_frame.setFrameVisible(true);
 }
 
 void HelloWorld::btMenuCallBack(CCObject* pObject,TouchEventType eventType)

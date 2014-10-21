@@ -3,7 +3,7 @@
 
 #include "cocos2d.h"
 #include "cocos-ext.h"
-#include "Frame.h"
+#include "FrameManager.h"
 
 USING_NS_CC;
 USING_NS_CC_EXT;
@@ -26,7 +26,7 @@ public:
     CREATE_FUNC(HelloWorld);
 
 private:
-	RegisterFrame m_frame;
+	FrameManager m_frame;
 };
 
 #endif // __HELLOWORLD_SCENE_H__
