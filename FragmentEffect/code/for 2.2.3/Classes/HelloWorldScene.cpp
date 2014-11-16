@@ -103,6 +103,9 @@ bool HelloWorld::init()
 	m_armature->setAnchorPoint(ccp(0.5f,0.0f));
 	this->addChild(m_armature,1);
 
+	//淡出淡入这样的动作依然可以使用
+	m_armature->runAction(CCSequence::create(CCFadeOut::create(0.5f),CCFadeIn::create(0.5f),0));
+
 	//就这几句是设置效果的，toggleCallback 和 gotoUserDefine方法里面也有
 	m_index = FragmentEffect::getInstance()->addEffectNode(m_armature); //m_index接收返回的序号，setEffect 和 getEffectSelect 的时候使用
 

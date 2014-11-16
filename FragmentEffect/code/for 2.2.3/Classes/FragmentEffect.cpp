@@ -1,5 +1,7 @@
 #include "FragmentEffect.h"
 
+USING_NS_CC;
+
 FragmentEffect* FragmentEffect::s_instance = 0;
 
 FragmentEffect* FragmentEffect::getInstance()
@@ -95,21 +97,8 @@ int FragmentEffect::addEffectNode(CCNode* pNode)
 	{
 		CCGLProgram* program = new CCGLProgram();
 
-		GLchar* pszFragSource =
-				"#ifdef GL_ES													  \n \
-				precision mediump float;										  \n \
-				#endif															  \n \
-				uniform sampler2D u_texture;									  \n \
-				varying vec2 v_texCoord;										  \n \
-				varying vec4 v_fragmentColor;									  \n \
-				uniform mat4 matrixEffect;										  \n \
-				void main(void)													  \n \
-				{																  \n \
-					gl_FragColor = texture2D(u_texture, v_texCoord)*matrixEffect; \n \
-				}";
-
 		program->initWithVertexShaderByteArray(ccPositionTextureColor_vert, //顶点找色器,这里是引擎自带的
-												 pszFragSource);            //像素找色器,这里是自己写的
+											   szEffectFragSource);            //像素找色器,这里是自己写的
 
 		//将生成的shader程序传给CCSprite类
 		pNode->setShaderProgram(program);
