@@ -5,17 +5,6 @@
 #include"cocos-ext.h"  
 #include "Subtitles.h"
 
-struct ChatData
-{
-	ChatData(const std::string& name,const std::string& say):
-		_name(name),
-		_say(say)
-	{
-	}
-	std::string _name;
-	std::string _say;
-};
-
 class HelloWorld : public cocos2d::CCLayer
 {
 public:
@@ -33,10 +22,10 @@ public:
 	}
 	
 	///有新字符出现的回调
-	void wordAppear(const char* dialogue,void* userdata)
+	void wordAppear(const std::string& who, const std::string& say, void* userData)
 	{
-		m_name->setString(((std::string*)userdata)->c_str());
-		m_say->setString(dialogue);
+		m_name->setString(who.c_str());
+		m_say->setString(say.c_str());
 	}
 
 	///当前对话完全显示完的回调,这个Demo没有用到它
@@ -51,8 +40,6 @@ private:
 	Subtitles m_subtitles;
 	cocos2d::CCLabelTTF* m_name;
 	cocos2d::CCLabelTTF* m_say;
-
-	std::vector<ChatData> m_chatDataList;
 
 	///从json文件中加载对话,放到 m_chatDataList 中
 	bool readTextFromJson();

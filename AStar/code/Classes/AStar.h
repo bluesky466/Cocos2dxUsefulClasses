@@ -11,6 +11,7 @@
 #include <math.h>
 #include <list>
 #include <vector>
+#include "Mark.h"
 
 struct ASCOORD
 {
@@ -42,6 +43,22 @@ struct ASCOORD
 		this->_x += coord._x ;
 		this->_y += coord._y;
 	}
+
+	inline void operator -= (const ASCOORD& coord)
+	{
+		this->_x -= coord._x ;
+		this->_y -= coord._y;
+	}
+
+	inline ASCOORD operator - (const ASCOORD& coord)
+	{
+		return ASCOORD(this->_x-coord._x,this->_y-coord._y);
+	}
+
+	inline ASCOORD operator + (const ASCOORD& coord)
+	{
+		return ASCOORD(this->_x+coord._x,this->_y+coord._y);
+	}
 };
 
 struct StepData
@@ -72,7 +89,7 @@ public:
 	AStar();
 
 	///设置地图的大小,必须在一开始设置
-	bool SetMapSize(int row,int col);
+	void SetMapSize(unsigned int row,unsigned int col) {m_mark.setSize(row,col);}
 
 	/**
 	 * 计算路径
@@ -83,32 +100,33 @@ public:
 	///获得从起点到终点的路径
 	bool GetRoute(std::vector<ASCOORD>* list);
 
-	///设置障碍物
-	void SetObstacle(const ASCOORD& coord);
-
-	///取消障碍物
-	void CancleObstacle(const ASCOORD& coord);
-
 	///清除所有障碍物
 	void ClearObstacles();
 
-	///判断所给坐标上有没有障碍物
-	bool IsObstacle(const ASCOORD& coord);
+	///设置障碍物
+	void SetObstacle(const ASCOORD& coord)    {m_mark.setMark(coord._y,coord._x);}
 	
-	int  GetRow()	{return m_row;}
-	int  GetCol()   {return m_col;}
-	void SetStart(const ASCOORD& coord)  {m_start  = coord;}
-	void SetTarget(const ASCOORD& coord) {m_target = coord;}
-	const ASCOORD& GetStart()            {return m_start;}
-	const ASCOORD& GetTarget()           {return m_target;}
+	///设置障碍物,直接传递全部
+	void SetMark(const Mark& mark)			  {m_mark=mark;}
+
+	///取消障碍物
+	void CancleObstacle(const ASCOORD& coord) {m_mark.cancelMark(coord._y,coord._x);}
+
+	///判断所给坐标上有没有障碍物
+	bool IsObstacle(const ASCOORD& coord)     {return m_mark.isMask(coord._y,coord._x);}
+	
+	int  GetRow()	{return m_mark.getRow();}
+	int  GetCol()   {return m_mark.getCol();}
+	void SetStart(const ASCOORD& coord)   {m_start  = coord;}
+	void SetTarget(const ASCOORD& coord)  {m_target = coord;}
+	const ASCOORD& GetStart()             {return m_start;}
+	const ASCOORD& GetTarget()            {return m_target;}
 
 	///设置可不可以走对角线
 	void SetDiagonalEnable(bool bEnable) {m_numSurround = bEnable?8:4;}
 	
 private:
-	unsigned char* m_map;
-	int  m_row;
-	int  m_col;
+	Mark m_mark;
 
 	ASCOORD m_target;
 	ASCOORD m_start;
@@ -127,7 +145,14 @@ private:
 
 	StepData* findFromList(std::list<StepData>& list, const ASCOORD& coord);
 
-	int computeH(const ASCOORD& coord) {return abs(m_target._x-coord._x)*10 + abs(m_target._y-coord._y)*10;}
+	int computeH(const ASCOORD& coord) {return fabs((float)(m_target._x-coord._x))*10 + fabs((float)m_target._y-coord._y)*10;}
 };
+
+inline void AStar::ClearObstacles()
+{
+	m_mark.clearMarks();
+	m_closeList.clear();
+	m_openList.clear();
+}
 
 #endif

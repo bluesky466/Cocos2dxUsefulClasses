@@ -29,17 +29,6 @@ bool HelloWorld::init()
 	m_aStar.ClearObstacles();
 	m_aStar.SetDiagonalEnable(false);
 
-
-	//起点
-	Vec2 startPos(100.0f,100.0f);
-	m_aStar.SetStart(computeASCOORD(startPos));
-
-	m_people = Sprite::create("people.png");
-	m_people->setAnchorPoint(Vec2(0.0f,0.0f));
-	m_people->setPosition(correctPosition(startPos));
-	this->addChild(m_people);
-	
-
 	//终点
 	Vec2 targetPos(300.0f,300.0f);
 	m_aStar.SetTarget(computeASCOORD(targetPos));
@@ -48,6 +37,16 @@ bool HelloWorld::init()
 	m_target->setAnchorPoint(Vec2(0.0f,0.0f));
 	m_target->setPosition(correctPosition(targetPos));
 	this->addChild(m_target);
+
+	//小人
+	Vec2 startPos(100.0f,100.0f);
+	m_aStar.SetStart(computeASCOORD(startPos));
+
+	m_people = Sprite::create("people.png");
+	m_people->setAnchorPoint(Vec2(0.0f,0.0f));
+	m_people->setPosition(correctPosition(startPos));
+	this->addChild(m_people);
+	
 
 
 	//障碍物层
@@ -115,7 +114,7 @@ void HelloWorld::clearCallback(Ref*)
 
 void HelloWorld::stepCallback()
 {
-	if(m_routeStep<m_route.size()-1)
+	if(m_routeStep<m_route.size())
 	{
 		m_people->runAction(Sequence::create(CCMoveTo::create(0.2f,Vec2(m_route[m_routeStep]._x*40.0f,m_route[m_routeStep]._y*40.0f)),CallFunc::create(CC_CALLBACK_0(HelloWorld::stepCallback,this)),NULL));
 		m_routeStep++;
@@ -141,16 +140,21 @@ bool HelloWorld::onTouchBegan(Touch* touch, Event* e)
 {
 	ASCOORD coord = computeASCOORD(touch->getLocation());
 
-	if(coord._x<m_col && coord._y<m_row && coord!=m_aStar.GetStart() && coord!=m_aStar.GetTarget())
+	if(!m_aStar.IsObstacle(coord) && coord._x<m_col && coord._y<m_row && coord!=m_aStar.GetStart() && coord!=m_aStar.GetTarget())
 	{
 		Vec2 pos = correctPosition(touch->getLocation());
 
 		Sprite* block = Sprite::create("block.png");
 		block->setAnchorPoint(Vec2(0.0f,0.0f));
 		block->setPosition(pos);
-		m_obstacles->addChild(block);
+		m_obstacles->addChild(block,0,coord._y*m_col+coord._x);
 
 		m_aStar.SetObstacle(coord);
+	}
+	else
+	{
+		m_aStar.CancleObstacle(coord);
+		m_obstacles->removeChildByTag(coord._y*m_col+coord._x);
 	}
 	
 	return false;

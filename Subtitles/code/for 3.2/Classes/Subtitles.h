@@ -1,4 +1,6 @@
 /****************************************************************************
+ for cocos2d-x 3.2
+
  author : LuoYu
  
  e-mail : 466474482@qq.com
@@ -14,33 +16,30 @@
 
 struct DialogueData
 {
-	DialogueData(const std::string& dialogue, void* userData):
-												_dialogue(dialogue),
-												_userData(userData)
+	DialogueData(const std::string& who,
+				 const std::string& say, 
+				 void* userData):
+						_who(who),
+						_say(say),
+						_userData(userData)
 	{
 	}
 
-	std::string _dialogue;
+	std::string _who;
+	std::string _say;
 	void* _userData;
 };
 
-///每个字出现都会调用,第一个参数存放当前显示的字符串,第二个参数存放userdata
-typedef void (cocos2d::CCObject::*SEL_WordAppearEvent)(const char*,void*);
-#define WordAppearEvent_selector(_SELECTOR) (SEL_WordAppearEvent)(&_SELECTOR)
+///每个字出现都会调用,第一个参数存放_who,第二个参数存放_say,第三个参数存放_userData
+typedef std::function<void(const std::string&,const std::string&,void*)> WordAppearEvent;
 
 ///当一段对话完全显示的时候调用，第一个参数存放该对话的序号,第二个参数存放该段对话的信息
-typedef void (cocos2d::CCObject::*SEL_DialogueEndEvent)(int,const DialogueData&);
-#define DialogueEnd_selector(_SELECTOR) (SEL_DialogueEndEvent)(&_SELECTOR)
+typedef std::function<void(int,const DialogueData&)> DialogueEndEvent;
 
 /**
  *  一个字幕类
  *  能够一个字一个字的打印出多段对话
  *  仅支持utf8编码
- *
- *  用法：
- *  1.调用 setDialogueList 方法将所有对话传人
- *  2.每一帧调用 update 方法进行更新
- *  3.设置 SEL_WordAppearEvent 回调显示字符
  */
 class Subtitles
 {
@@ -62,14 +61,8 @@ public:
 	///跳到某一段对话
 	bool jumpToDialogue(int index);
 
-	///是不是最后一段对话
-	bool isEndofDialogueList()			 {return m_dialogueIndex>=m_dialogueList.size()-1;}
-
-	///得到当前对话的序号
-	bool getCurDialogueIndex()           {return m_dialogueIndex;}
-
 	///这段对话是否已经完全显示
-	bool isShowWholeDialogue()			 {return m_numByteCopy>=m_dialogueList[m_dialogueIndex]._dialogue.size();}
+	bool isShowWholeDialogue()			 {return m_numByteCopy>=m_dialogueList[m_dialogueIndex]._say.size();}
 
 	///设置字符出现的时间间隔
 	void setWordInterval(float interval) {m_wordInterval = interval;}
@@ -77,19 +70,14 @@ public:
 	///设置开始或停止打印对话
 	void setRunning(bool isRunning)      {m_isRunning = isRunning;}
 
+	///是不是最后一段对话
+	bool isEndofDialogueList()			 {return m_dialogueIndex>=m_dialogueList.size()-1;}
+
 	///当有新的字符出现的时候的回调函数
-	void setWordAppearEvent(cocos2d::CCObject* target, SEL_WordAppearEvent selector)
-	{
-		m_wordAppearTarget   = target;
-		m_wordAppearSelector = selector;
-	}
+	void setWordAppearEvent(WordAppearEvent callback) {m_wordAppearCallback = callback; }
 
 	///当一段对话全部打印出来的时候的回调函数
-	void setDialogueEndEvent(cocos2d::CCObject* target, SEL_DialogueEndEvent selector)
-	{
-		m_dialogueEndTarget   = target;
-		m_dialogueEndSelector = selector;
-	}
+	void setDialogueEndEvent(DialogueEndEvent callback){m_dialogueEndCallback = callback;}
 
 	const DialogueData& getDialogueData(int index)
 	{
@@ -112,11 +100,8 @@ private:
 	char* m_dialogue;        ///<当前显示的对话
 	int   m_numByteCopy;     ///<复制了多少个字节的字幕(utf8的字符不是固定长度的,所以需要记录)
 	
-	SEL_WordAppearEvent m_wordAppearSelector;
-	cocos2d::CCObject* m_wordAppearTarget;
-	
-	SEL_DialogueEndEvent m_dialogueEndSelector;
-	cocos2d::CCObject* m_dialogueEndTarget;
+	WordAppearEvent m_wordAppearCallback;
+	DialogueEndEvent m_dialogueEndCallback;
 
 	/**
 	 *  复制src的第一个utf8字符

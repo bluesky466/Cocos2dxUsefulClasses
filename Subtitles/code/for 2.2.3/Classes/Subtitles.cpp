@@ -25,22 +25,24 @@ void Subtitles::setDialogueList(const std::vector<DialogueData>& dialogueList)
 		delete[] m_dialogue;
 
 	if(dialogueList.size()>0)
-		m_dialogue = new char[m_dialogueList[m_dialogueIndex]._dialogue.length()+1];
+		m_dialogue = new char[m_dialogueList[m_dialogueIndex]._say.length()+1];
 }
 
 void Subtitles::showWholeDialogue()
 {
 	CCAssert(m_dialogueList.size()>0,"Subtitles::m_dialogueList::size() must >0");
 
-	m_numByteCopy = m_dialogueList[m_dialogueIndex]._dialogue.size()+1;
-	memcpy(m_dialogue,m_dialogueList[m_dialogueIndex]._dialogue.c_str(),m_numByteCopy);
+	m_numByteCopy = m_dialogueList[m_dialogueIndex]._say.size()+1;
+	memcpy(m_dialogue,m_dialogueList[m_dialogueIndex]._say.c_str(),m_numByteCopy);
 
 	//字出现
 	if(m_wordAppearTarget && m_wordAppearSelector)
-		(m_wordAppearTarget->*m_wordAppearSelector)(m_dialogue, m_dialogueList[m_dialogueIndex]._userData);
+		(m_wordAppearTarget->*m_wordAppearSelector)(m_dialogueList[m_dialogueIndex]._who, 
+													m_dialogue, 
+													m_dialogueList[m_dialogueIndex]._userData);
 
 	//这段对话已经显示完毕
-	if(m_numByteCopy>=m_dialogueList[m_dialogueIndex]._dialogue.size() && m_dialogueEndTarget && m_dialogueEndSelector)
+	if(m_numByteCopy>=m_dialogueList[m_dialogueIndex]._say.size() && m_dialogueEndTarget && m_dialogueEndSelector)
 		(m_dialogueEndTarget->*m_dialogueEndSelector)(m_dialogueIndex,m_dialogueList[m_dialogueIndex]);
 }
 
@@ -51,10 +53,10 @@ void Subtitles::update(float interval)
 
 	m_timeAccumulate += interval;
 
-	if(m_timeAccumulate >= m_wordInterval && m_numByteCopy < m_dialogueList[m_dialogueIndex]._dialogue.size())
+	if(m_timeAccumulate >= m_wordInterval && m_numByteCopy < m_dialogueList[m_dialogueIndex]._say.size())
 	{
 		int numByte = copyUtf8Word(m_dialogue + m_numByteCopy,
-								   m_dialogueList[m_dialogueIndex]._dialogue.c_str() + m_numByteCopy);
+								   m_dialogueList[m_dialogueIndex]._say.c_str() + m_numByteCopy);
 
 		CCAssert(numByte>0,"copyUtf8Word must return >0");
 
@@ -65,32 +67,14 @@ void Subtitles::update(float interval)
 		
 		//字出现
 		if(m_wordAppearTarget && m_wordAppearSelector)
-			(m_wordAppearTarget->*m_wordAppearSelector)(m_dialogue,m_dialogueList[m_dialogueIndex]._userData);
+			(m_wordAppearTarget->*m_wordAppearSelector)(m_dialogueList[m_dialogueIndex]._who, 
+														m_dialogue, 
+														m_dialogueList[m_dialogueIndex]._userData);
 
 		//这段对话已经显示完毕
-		if(m_numByteCopy>=m_dialogueList[m_dialogueIndex]._dialogue.size() && m_dialogueEndTarget && m_dialogueEndSelector)
+		if(m_numByteCopy>=m_dialogueList[m_dialogueIndex]._say.size() && m_dialogueEndTarget && m_dialogueEndSelector)
 			(m_dialogueEndTarget->*m_dialogueEndSelector)(m_dialogueIndex,m_dialogueList[m_dialogueIndex]);
 	}
-}
-
-bool Subtitles::jumpToDialogue(int index)
-{
-	
-	if(m_dialogueList.size()!=0 && index>=0 && index<m_dialogueList.size())
-	{
-		m_dialogueIndex  = index;
-		m_numByteCopy    = 0;
-		m_timeAccumulate = 0.0f;
-
-		if(m_dialogue)
-			delete[] m_dialogue;
-
-		m_dialogue = new char[m_dialogueList[m_dialogueIndex]._dialogue.length()+1];
-
-		return true;
-	}
-
-	return false;
 }
 
 bool Subtitles::nextDialogue()
@@ -104,7 +88,7 @@ bool Subtitles::nextDialogue()
 		if(m_dialogue)
 			delete[] m_dialogue;
 
-		m_dialogue = new char[m_dialogueList[m_dialogueIndex]._dialogue.length()+1];
+		m_dialogue = new char[m_dialogueList[m_dialogueIndex]._say.length()+1];
 
 		return true;
 	}
@@ -173,4 +157,24 @@ int Subtitles::copyUtf8Word(char* desc,const char* src)
 
 	//其实根本来不了这里
 	return 0;
+}
+
+bool Subtitles::jumpToDialogue(int index)
+{
+	
+	if(m_dialogueList.size()!=0 && index>=0 && index<m_dialogueList.size())
+	{
+		m_dialogueIndex  = index;
+		m_numByteCopy    = 0;
+		m_timeAccumulate = 0.0f;
+
+		if(m_dialogue)
+			delete[] m_dialogue;
+
+		m_dialogue = new char[m_dialogueList[m_dialogueIndex]._say.length()+1];
+
+		return true;
+	}
+
+	return false;
 }

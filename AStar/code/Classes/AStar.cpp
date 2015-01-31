@@ -1,10 +1,7 @@
 #include "AStar.h"
 
 AStar::AStar():
-	m_numSurround(8),
-	m_map(0),
-	m_row(0),
-	m_col(0)
+	m_numSurround(8)
 {
 	m_surround[0] = ASCOORD( 0,-1);
 	m_surround[1] = ASCOORD( 0, 1);
@@ -25,25 +22,10 @@ AStar::AStar():
 	ClearObstacles();
 }
 
-void AStar::ClearObstacles()
-{
-	if(m_map)
-	{
-		int size = m_row*m_col/8+1;
-		memset(m_map,0,size);
-	}
-
-	m_closeList.clear();
-	m_openList.clear();
-}
-
 bool AStar::ComputeRoute()
 {
 	m_openList.clear();
 	m_closeList.clear();
-
-	if(m_row<=0 || m_col<=0 )
-		return false;
 
 	StepData sd(m_target);
 	sd._g = 0;
@@ -72,7 +54,7 @@ bool AStar::ComputeRoute()
 
 bool AStar::judgeSurround(const ASCOORD& coord,const ASCOORD& parentCoord,int G)
 {
-	if(coord._x>=0 && coord._x<m_col && coord._y>=0 && coord._y<m_row && !isInList(m_closeList,coord) && !IsObstacle(coord))
+	if(!isInList(m_closeList,coord) && !m_mark.isMask(coord._y,coord._x))
 	{
 		StepData* pSD = findFromList(m_openList,coord);
 		if (pSD && pSD->_g > G)
@@ -190,53 +172,3 @@ bool AStar::GetRoute(std::vector<ASCOORD>* list)
 	return false;
 }
 
-bool AStar::SetMapSize(int row,int col)
-{
-	if(row<= 0 || col<=0)
-		return false;
-
-	if(m_map)
-		delete[] m_map;
-
-	int size = row*col/8+1;
-
-	m_map = new unsigned char[size];
-
-	memset(m_map,0,size);
-
-	m_row = row;
-	m_col = col;
-
-	return true;
-}
-
-void AStar::SetObstacle(const ASCOORD& coord)
-{
-	if(coord._x>=0 && coord._x<m_col && coord._y>=0 && coord._y<m_row)
-	{
-		int index = coord._y*m_col+coord._x;
-
-		m_map[index/8] |= 1<<(index%8);
-	}
-}
-
-void AStar::CancleObstacle(const ASCOORD& coord)
-{
-	if(coord._x>=0 && coord._x<m_col && coord._y>=0 && coord._y<m_row)
-	{
-		int index = coord._y*m_col+coord._x;
-
-		m_map[index/8] &= ~(1<<index%8);
-	}
-}
-
-bool AStar::IsObstacle(const ASCOORD& coord)
-{
-	if(coord._x>=0 && coord._x<m_col && coord._y>=0 && coord._y<m_row)
-	{
-		int index = coord._y*m_col+coord._x;
-
-		return m_map[index/8] & (1<<(index%8));
-	}
-	return true;
-}
