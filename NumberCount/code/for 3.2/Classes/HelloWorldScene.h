@@ -15,11 +15,13 @@ public:
     void increaseCallback(Ref* pSender);
 	void reduceCallback(Ref* pSender);
 	void gotoCallback(Ref* pSender);
-    
+    void finishCallback(int targetNumber);
+
     CREATE_FUNC(HelloWorld);
 
 private:
 	NumberCount m_numberCount;
+	Label*      m_finishTip;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

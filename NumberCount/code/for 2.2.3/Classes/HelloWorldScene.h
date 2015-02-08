@@ -11,14 +11,15 @@ public:
 
     static cocos2d::CCScene* scene();
     
-    void increaseCallback(CCObject* pSender);
-	void reduceCallback(CCObject* pSender);
-	void gotoCallback(CCObject* pSender);
-    
+    void increaseCallback(cocos2d::CCObject* pSender);
+	void reduceCallback(cocos2d::CCObject* pSender);
+	void gotoCallback(cocos2d::CCObject* pSender);
+    void finishCallback(int targetNumber);
     CREATE_FUNC(HelloWorld);
 
 private:
 	NumberCount m_numberCount;
+	cocos2d::CCLabelTTF* m_finishTip;
 };
 
 #endif 

@@ -9,7 +9,8 @@ Subtitles::Subtitles():
 	m_wordAppearCallback(nullptr),
 	m_dialogueEndCallback(nullptr)
 {
-
+	
+	cocos2d::Director::getInstance()->getScheduler()->schedule(schedule_selector(Subtitles::update),this,0.0f,false);
 }
 
 void Subtitles::setDialogueList(const std::vector<DialogueData>& dialogueList)

@@ -4,84 +4,73 @@ USING_NS_CC;
 using namespace ui;
 
 NumberCount::NumberCount():
-	m_ccLabelAtlas(0),
-	m_uiLabelAtlas(0),
-	m_number(0),
-	m_increment(0),
+	m_numberTarget(0),
+	m_numberCurrent(0),
 	m_numberDelta(1),
 	m_timeDelta(0.01f),
-	m_timeEscape(0.0f)
+	m_timeEscape(0.0f),
+	m_ccLabelAtlas(0),
+	m_uiLabelAtlas(0),
+	m_finishCallback(nullptr)
 {
-	CCDirector::getInstance()->getScheduler()->schedule(schedule_selector(NumberCount::updateNumber),this,0.0f,false);
+	Director::getInstance()->getScheduler()->schedule(schedule_selector(NumberCount::updateNumber),this,0.0f,false);
 }
 
 bool NumberCount::setNumber(int number, bool bGradually)
 {
-	if(!m_ccLabelAtlas && !m_uiLabelAtlas)
-		return false;
-
 	if(!bGradually)
 	{
-		m_number = number;
-
-		if(m_ccLabelAtlas)
-			m_ccLabelAtlas->setString(__String::createWithFormat("%d",number)->getCString());
-
-		if(m_uiLabelAtlas)
-			m_uiLabelAtlas->setString(__String::createWithFormat("%d",number)->getCString());
+		m_numberTarget  = number;
+		m_numberCurrent = number;
 	}
 	else
 	{
-		m_increment = number - m_number;
+		m_numberTarget = number;
+		m_timeEscape   = 0.0f;
 	}
 
-	m_timeEscape = 0.0f;
+	if(m_ccLabelAtlas)
+		m_ccLabelAtlas->setString(__String::createWithFormat("%d",m_numberCurrent)->getCString());
+
+	if(m_uiLabelAtlas)
+		m_uiLabelAtlas->setString(__String::createWithFormat("%d",m_numberCurrent)->getCString());
 	
 	return true;
 }
 
 void NumberCount::updateNumber(float fInterval)
 {
-	if(m_increment==0 || (!m_ccLabelAtlas && !m_uiLabelAtlas))
-		return ;
+	if(m_numberCurrent == m_numberTarget)
+		return;
 
 	if(m_timeEscape > m_timeDelta)
 	{
-		if(m_increment>0)
+		if(m_numberTarget > m_numberCurrent)
 		{
-			if(m_increment - m_numberDelta > 0)
-			{
-				m_number     = m_number + m_numberDelta;
-				m_increment -= m_numberDelta;
-			}
-			else
-			{
-				m_number    = m_number + m_increment;
-				m_increment = 0;
-			}
+			m_numberCurrent += m_numberDelta;
+
+			if(m_numberCurrent>m_numberTarget)
+				m_numberCurrent = m_numberTarget;
 		}
 		else
 		{
-			if(m_increment + m_numberDelta < 0)
-			{
-				m_number     = m_number - m_numberDelta;
-				m_increment += m_numberDelta;
-			}
-			else
-			{
-				m_number    = m_number + m_increment;
-				m_increment = 0;
-			}
+			m_numberCurrent -= m_numberDelta;
+
+			if(m_numberCurrent < m_numberTarget)
+				m_numberCurrent = m_numberTarget;
 		}
 
+		m_timeEscape = 0.0f;
+
 		if(m_ccLabelAtlas)
-			m_ccLabelAtlas->setString(__String::createWithFormat("%d",m_number)->getCString());
+			m_ccLabelAtlas->setString(__String::createWithFormat("%d",m_numberCurrent)->getCString());
 
 		if(m_uiLabelAtlas)
-			m_uiLabelAtlas->setString(__String::createWithFormat("%d",m_number)->getCString());
+			m_uiLabelAtlas->setString(__String::createWithFormat("%d",m_numberCurrent)->getCString());
 
-		m_timeEscape = 0.0f;
+		if(m_numberCurrent==m_numberTarget && m_finishCallback)
+			m_finishCallback(m_numberTarget);
 	}
 	else
-		m_timeEscape+=fInterval;
+		m_timeEscape += fInterval;
 }

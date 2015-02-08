@@ -1,5 +1,7 @@
 #include "Subtitles.h"
 
+USING_NS_CC;
+
 Subtitles::Subtitles():
 	m_wordInterval(0.1f),
 	m_dialogue(NULL),
@@ -11,7 +13,7 @@ Subtitles::Subtitles():
 	m_dialogueEndTarget(NULL),
 	m_dialogueEndSelector(NULL)
 {
-
+	CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(Subtitles::update),this,0.0f,false);
 }
 
 void Subtitles::setDialogueList(const std::vector<DialogueData>& dialogueList)

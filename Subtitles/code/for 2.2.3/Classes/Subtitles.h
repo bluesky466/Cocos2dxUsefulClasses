@@ -43,7 +43,7 @@ typedef void (cocos2d::CCObject::*SEL_DialogueEndEvent)(int,const DialogueData&)
  *  能够一个字一个字的打印出多段对话
  *  仅支持utf8编码
  */
-class Subtitles
+class Subtitles : public cocos2d::CCObject
 {
 public:
 	Subtitles();

@@ -14,13 +14,6 @@ public:
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
     static cocos2d::CCScene* scene();
 
-
-	//这里需要更新 m_subtitles
-    void updateSay(float interval)
-	{
-		m_subtitles.update(interval);
-	}
-	
 	///有新字符出现的回调
 	void wordAppear(const std::string& who, const std::string& say, void* userData)
 	{

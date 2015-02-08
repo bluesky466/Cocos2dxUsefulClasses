@@ -41,7 +41,7 @@ typedef std::function<void(int,const DialogueData&)> DialogueEndEvent;
  *  能够一个字一个字的打印出多段对话
  *  仅支持utf8编码
  */
-class Subtitles
+class Subtitles : public cocos2d::Ref
 {
 public:
 	Subtitles();

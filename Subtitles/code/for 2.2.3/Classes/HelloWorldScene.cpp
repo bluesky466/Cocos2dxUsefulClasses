@@ -54,7 +54,6 @@ bool HelloWorld::init()
 		m_subtitles.setDialogueEndEvent(this,DialogueEnd_selector(HelloWorld::dialogueEnd));
 	}
 
-	this->schedule(schedule_selector(HelloWorld::updateSay));
 	CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this,0,true);
 
     return true;

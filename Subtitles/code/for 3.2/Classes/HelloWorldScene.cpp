@@ -53,8 +53,6 @@ bool HelloWorld::init()
 		m_subtitles.setDialogueEndEvent(CC_CALLBACK_2(HelloWorld::dialogueEnd,this));
 	}
 
-	this->schedule(schedule_selector(HelloWorld::updateSay));
-
 	//ÉèÖÃ´¥Åö´¥ÅöÊÂ¼þ
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->onTouchBegan     = CC_CALLBACK_2(HelloWorld::onTouchBegan,this);

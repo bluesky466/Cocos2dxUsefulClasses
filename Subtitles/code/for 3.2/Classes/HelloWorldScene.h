@@ -17,12 +17,6 @@ public:
 
     // Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
     virtual bool init();  
-    
-   ///这里需要更新 m_subtitles
-    void updateSay(float interval)
-	{
-		m_subtitles.update(interval);
-	}
 	
 	///有新字符出现的回调
 	void wordAppear(const std::string& who, const std::string& say, void* userData)
