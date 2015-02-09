@@ -16,6 +16,11 @@ NumberCount::NumberCount():
 	Director::getInstance()->getScheduler()->schedule(schedule_selector(NumberCount::updateNumber),this,0.0f,false);
 }
 
+NumberCount::~NumberCount()
+{
+	Director::getInstance()->getScheduler()->unschedule(schedule_selector(NumberCount::updateNumber),this);
+}
+
 bool NumberCount::setNumber(int number, bool bGradually)
 {
 	if(!bGradually)

@@ -13,6 +13,11 @@ Subtitles::Subtitles():
 	cocos2d::Director::getInstance()->getScheduler()->schedule(schedule_selector(Subtitles::update),this,0.0f,false);
 }
 
+Subtitles::~Subtitles()
+{
+	cocos2d::Director::getInstance()->getScheduler()->unschedule(schedule_selector(Subtitles::update),this);
+}
+
 void Subtitles::setDialogueList(const std::vector<DialogueData>& dialogueList)
 {
 	m_dialogueList   = dialogueList;

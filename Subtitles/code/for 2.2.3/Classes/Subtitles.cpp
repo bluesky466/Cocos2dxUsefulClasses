@@ -16,6 +16,11 @@ Subtitles::Subtitles():
 	CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(Subtitles::update),this,0.0f,false);
 }
 
+Subtitles::~Subtitles()
+{
+	CCDirector::sharedDirector()->getScheduler()->unscheduleSelector(schedule_selector(Subtitles::update),this);
+}
+
 void Subtitles::setDialogueList(const std::vector<DialogueData>& dialogueList)
 {
 	m_dialogueList   = dialogueList;

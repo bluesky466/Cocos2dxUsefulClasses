@@ -14,7 +14,12 @@ NumberCount::NumberCount():
 	m_selector(0),
 	m_target(0)
 {
-	cocos2d::CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(NumberCount::updateNumber),this,0.0f,false);
+	CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(NumberCount::updateNumber),this,0.0f,false);
+}
+
+NumberCount::~NumberCount()
+{
+	CCDirector::sharedDirector()->getScheduler()->unscheduleSelector(schedule_selector(NumberCount::updateNumber),this);
 }
 
 bool NumberCount::setNumber(int number, bool bGradually)

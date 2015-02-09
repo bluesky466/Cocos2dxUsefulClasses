@@ -1,16 +1,1 @@
-﻿实现了一个使得数字标签逐步增加或减少的功能类
-
-/**
- * @brief 一个数字标签的增强功能类
- *
- * 功能：让数字标签按设定的增量一逐步增加
- *       数字会每隔m_timeDelta时间,增加m_numberDelta,直到总共增加m_increment
- *
- * 应用范围：可以用于分数的显示
- * 可以管理 cocos2d 的 cocos2d::LabelAtlas 和
- * 从 cocostudio 导出的 cocos2d::ui::TextAtlas
- */
-
-
-cocos2d-x 2.2.3 和 cocos2d-x 3.2的版本都写了
-不过3.2的版本 set...Atlas 必须按照是否从 cocostudio 导出调用 setTextAtlas 和 setLabelAtlas
+﻿实现了一个使得数字标签逐步增加或减少的功能类,可以用于分数的显示或者倒计时

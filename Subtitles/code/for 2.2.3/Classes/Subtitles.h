@@ -47,6 +47,7 @@ class Subtitles : public cocos2d::CCObject
 {
 public:
 	Subtitles();
+	~Subtitles();
 
 	///每一帧调用,进行计算
 	void update(float interval);

@@ -30,6 +30,7 @@ class NumberCount : public cocos2d::CCObject
 {
 public:
 	NumberCount();
+	~NumberCount();
 
 	void setLabelAtlas(cocos2d::CCLabelAtlas* ccLabelAtlas)   
 	{
