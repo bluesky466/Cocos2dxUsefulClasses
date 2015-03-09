@@ -39,6 +39,7 @@ public:
 	void setFrameVisible(bool bVisible);
 
 	bool ccTouchBegan(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent);
+    void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent);
 
 	cocos2d::ui::Widget* getFrameLayer() {return m_frameLayer;}
 

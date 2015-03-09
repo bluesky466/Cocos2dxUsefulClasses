@@ -62,7 +62,6 @@ bool HelloWorld::init()
     this->addChild(sprite, 0);
     
 	/*Frame的测试*/
-
 	Widget* frame = cocostudio::GUIReader::getInstance()->widgetFromJsonFile("UIRes/DemoLogin.ExportJson");
 	frame->setScale(0.8f); //缩放比例可以随便设置
 	frame->setAnchorPoint(Vec2(0.5f,0.5f));//锚点可以随便设置
@@ -79,9 +78,11 @@ bool HelloWorld::init()
 
 	//frame初始化,可以试一下不初始化，直接layer->setVisible(false);设置窗口不可见之后,鼠标点击原本的按钮区域，看看是否有对话框出现
 	m_frame.setFrame(frame,Helper::seekWidgetByName(frame,"backageImg"));
+
+	//设置点击在对话框外部时候的监听事件，可以在这里将对话框隐藏
+	m_frame.setTouchOutOfFrameEventListener(CC_CALLBACK_1(HelloWorld::touchOutOfFrame,this));
+	
 	m_frame.setFrameVisible(true);
-
-
 
     return true;
 }
@@ -95,8 +96,14 @@ void HelloWorld::btMenuCallBack(Ref* pObject,Widget::TouchEventType eventType)
 {
 	if(eventType == Widget::TouchEventType::ENDED)
 	{
-		MessageBox("","");
+		MessageBox("touch ui widget","touch ui widget");
 	}
+}
+
+void HelloWorld::touchOutOfFrame(cocos2d::ui::Widget*)
+{
+	//触碰点在对话框外，将对话框隐藏
+	m_frame.setFrameVisible(false);
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)

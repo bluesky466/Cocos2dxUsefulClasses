@@ -42,7 +42,8 @@ public:
 
 	void setFrameVisible(bool bVisible);
 
-	bool onTouchBegan(cocos2d::Touch *pTouch, cocos2d::Event *pEvent);
+	bool onTouchBegan(cocos2d::Touch* pTouch, cocos2d::Event* pEvent);
+	void onTouchEnded(cocos2d::Touch* pTouch, cocos2d::Event* pEvent);
 
 	cocos2d::ui::Widget* getFrameLayer() {return m_frameLayer;}
 
@@ -57,22 +58,28 @@ public:
 		m_eventCallback = callback;
 	}
 
+	///递归设置子控件是否可触碰,3.2版本的似乎当根对话框不可见之后子控件就自动不可触碰了，并不需要调用这个方法
+	void setChildrenTouchEnabled(bool bTouchEnabled)
+	{
+		setChildrenTouchEnabled(m_frameLayer,bTouchEnabled);
+	}
+
+
 protected:
 	cocos2d::ui::Widget*  m_frameLayer;
 	cocos2d::ui::Widget*  m_frameBg;
 	cocos2d::Size   m_frameSize;
 	cocos2d::Point  m_anchorPoint;  ///<锚点在背景坐标系的坐标,坐标范围是(0.0f,0.0f)到m_frameSize
 	bool m_bFrameVisible;
+
 	cocos2d::EventListenerTouchOneByOne* m_touchListener;
 	std::function<void(cocos2d::ui::Widget*)> m_eventCallback;
 
 	cocos2d::Ref* m_eventTarget;
 	SEL_TouchOutOfFrameEvent m_eventSelector;
 
-	///设置对话框是否可见的同时设置对话框中的控件是否可触碰(防止对话框不可见,但控件仍收到触碰消息)
-	void setChildrenTouchEnabled(cocos2d::Node* pNode, bool bTouchEnabled);
-
 	bool isOutsideFrame(cocos2d::Touch *pTouch);
+	void setChildrenTouchEnabled(cocos2d::Node* pNode, bool bTouchEnabled);
 };
 
 #endif

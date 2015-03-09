@@ -78,6 +78,10 @@ bool HelloWorld::init()
 
 	//frame初始化,可以试一下不初始化，直接layer->setVisible(false);设置窗口不可见之后,鼠标点击原本的按钮区域，看看是否有对话框出现
 	m_frame.setFrame(frame,(UIImageView*)layer->getWidgetByName("backageImg"));
+
+	//设置触点在对话框外面时候的回调，在哪里设置对话框不可见，不可触碰
+	m_frame.setTouchOutOfFrameEventListener(this,TouchOutOfFrameEvent_selector(HelloWorld::touchOutOfFrameCallback));
+
 	m_frame.setFrameVisible(true);
 
 
@@ -94,6 +98,12 @@ void HelloWorld::btMenuCallBack(CCObject* pObject,TouchEventType eventType)
 {
 	if(eventType == TOUCH_EVENT_ENDED)
 	{
-		CCMessageBox("","");
+		CCMessageBox("touch ui widget","touch ui widget");
 	}
+}
+
+void HelloWorld::touchOutOfFrameCallback(cocos2d::ui::Widget*)
+{
+	//触点在对话框外面，设置对话框不可见，不可触碰
+	m_frame.setFrameVisible(false);
 }

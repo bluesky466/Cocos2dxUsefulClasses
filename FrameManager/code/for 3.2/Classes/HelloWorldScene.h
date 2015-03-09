@@ -4,8 +4,6 @@
 #include "cocos2d.h"
 #include "FrameManager.h"
 
-USING_NS_CC;
-using namespace ui;
 
 class HelloWorld : public cocos2d::Layer
 {
@@ -18,9 +16,10 @@ public:
     
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
-    
-	void btVisbleCallback(Ref*);
-	void btMenuCallBack(Ref*,Widget::TouchEventType);
+    void touchOutOfFrame(cocos2d::ui::Widget*);
+
+	void btVisbleCallback(cocos2d::Ref*);
+	void btMenuCallBack(cocos2d::Ref*,cocos2d::ui::Widget::TouchEventType);
 
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);

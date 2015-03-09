@@ -10,9 +10,6 @@ FrameManager::FrameManager():
 	m_eventTarget(0),
 	m_eventSelector(0)
 {
-	m_touchListener = EventListenerTouchOneByOne::create();
-	m_touchListener->onTouchBegan = CC_CALLBACK_2(FrameManager::onTouchBegan,this);
-	Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(m_touchListener,-99999);
 }
 
 bool FrameManager::setFrame(Widget* frameLayer,Widget* frameBg)
@@ -24,22 +21,32 @@ bool FrameManager::setFrame(Widget* frameLayer,Widget* frameBg)
 	m_anchorPoint.y = m_frameSize.height * m_frameBg->getAnchorPoint().y;
 	m_bFrameVisible = true;
 
+	m_touchListener = EventListenerTouchOneByOne::create();
+	m_touchListener->onTouchBegan = CC_CALLBACK_2(FrameManager::onTouchBegan,this);
+	m_touchListener->onTouchEnded = CC_CALLBACK_2(FrameManager::onTouchEnded,this);
+	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(m_touchListener,m_frameLayer);
+
 	return true;
 }
 
 void FrameManager::setFrameVisible(bool bVisible)
 {
+	CCAssert(m_frameLayer!=0 && m_frameBg!=0,"m_frameBg or m_frameBg is null");
+
 	if(m_frameLayer && m_frameBg)
 	{
 		m_bFrameVisible = bVisible;
 		m_frameLayer->setVisible(m_bFrameVisible);
-		m_frameLayer->setTouchEnabled(m_bFrameVisible);
-		setChildrenTouchEnabled(m_frameLayer,m_bFrameVisible);
 	}
 }
 
 bool FrameManager::isOutsideFrame(Touch *pTouch)
 {
+	CCAssert(m_frameBg,"m_frameBg is null");
+
+	if(!m_frameBg)
+		return false;
+
 	Point point = m_frameBg->convertTouchToNodeSpaceAR(pTouch);
 	point = point + m_anchorPoint;
 
@@ -52,28 +59,28 @@ bool FrameManager::isOutsideFrame(Touch *pTouch)
 	return false;
 }
 
-bool FrameManager::onTouchBegan(Touch *pTouch, Event *pEvent)
+void FrameManager::onTouchEnded(cocos2d::Touch* pTouch, cocos2d::Event* pEvent)
 {
-	if(m_frameBg && m_bFrameVisible && isOutsideFrame(pTouch))
+	if(m_bFrameVisible && isOutsideFrame(pTouch))
 	{
-		m_bFrameVisible = false;
-		m_frameLayer->setVisible(false);
-		m_frameLayer->setTouchEnabled(false);
-		setChildrenTouchEnabled(m_frameLayer,false);
-
 		if(m_eventSelector && m_eventTarget)
 			(m_eventTarget->*m_eventSelector)(m_frameLayer);
 
 		if(m_eventCallback)
 			m_eventCallback(m_frameLayer);
 	}
+}
+
+bool FrameManager::onTouchBegan(Touch *pTouch, Event *pEvent)
+{
+	if(m_bFrameVisible)
+		return true;
 
 	return false;
 }
 
 void FrameManager::setChildrenTouchEnabled(Node* pNode, bool bTouchEnabled)
 {
-	
 	Vector<Node*> pChildren =  pNode->getChildren();
 	auto i = pChildren.begin();
 	auto end = pChildren.cend();

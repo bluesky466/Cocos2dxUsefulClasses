@@ -18,7 +18,7 @@ public:
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
     static cocos2d::CCScene* scene();
     
-
+	void touchOutOfFrameCallback(cocos2d::ui::Widget*);
     void btVisbleCallback(CCObject*);
 	void btMenuCallBack(CCObject*,TouchEventType);
 
