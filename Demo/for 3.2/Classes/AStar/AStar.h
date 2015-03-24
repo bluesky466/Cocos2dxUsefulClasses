@@ -5,6 +5,7 @@
 
  github : https://github.com/bluesky466/cocos2dxUsefulClasses
  ****************************************************************************/
+
 #ifndef _A_STAR_H_
 #define _A_STAR_H_
 

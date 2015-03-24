@@ -7,6 +7,7 @@
 
  github : https://github.com/bluesky466/cocos2dxUsefulClasses
  ****************************************************************************/
+
 #ifndef _SUBTITLES_H_
 #define _SUBTITLES_H_
 

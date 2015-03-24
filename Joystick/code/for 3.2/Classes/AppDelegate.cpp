@@ -1,5 +1,5 @@
 #include "AppDelegate.h"
-#include "HelloWorldScene.h"
+#include "TestJoystick.h"
 
 USING_NS_CC;
 
@@ -26,10 +26,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // set FPS. the default value is 1.0/60 if you don't call this
     director->setAnimationInterval(1.0 / 60);
 
-	glview->setDesignResolutionSize(320.0f,480.0f,ResolutionPolicy::SHOW_ALL);
 
     // create a scene. it's an autorelease object
-	Scene *scene = HelloWorld::scene();
+    auto scene = TestJoystick::createScene();
 
     // run
     director->runWithScene(scene);

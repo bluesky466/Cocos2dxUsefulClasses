@@ -8,19 +8,25 @@
  github : https://github.com/bluesky466/cocos2dxUsefulClasses
  ****************************************************************************/
 
-#ifndef __JOYSTICK_H__
-#define __JOYSTICK_H__
+#ifndef _JOYSTICK_H_
+#define _JOYSTICK_H_
 
 #include "cocos2d.h"
 
-enum class JoystickEventType{JET_TOUCH_BEGIN,JET_TOUCH_MOVE,JET_TOUCH_END};
+enum class JoystickEventType{
+	JET_TOUCH_BEGIN,
+	JET_TOUCH_MOVE,
+	JET_TOUCH_END
+};
+
+class Joystick;
 
 //interval是时间间隔,传入的x、y的范围都是0-1.0F,JoystickEventType是类型（开始,移动,结束）
-typedef void (cocos2d::Ref::*SEL_JoystickEvent)(float interval,float x, float y,JoystickEventType type);
-#define joystickEvent_selector(_SELECTOR) (SEL_JoystickEvent)(&_SELECTOR)
+typedef std::function<void(Joystick*,float interval,float x, float y,JoystickEventType type)> JoystickEventCallback;
+#define JOYSTICK_CALLBACK(__selector__,__target__, ...) std::bind(&__selector__,__target__, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, ##__VA_ARGS__)
 
-typedef std::function<void(float interval,float x, float y,JoystickEventType type)> JoystickEventCallback;
-#define JOYSTICK_CALLBACK(__selector__,__target__, ...) std::bind(&__selector__,__target__, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, ##__VA_ARGS__)
+///触碰在摇杆外部的时候的回调方法，如果该回调返回true,则以后将继续接收JET_TOUCH_BEGIN,JET_TOUCH_MOVE和JET_TOUCH_END消息
+typedef std::function<bool(Joystick*,const cocos2d::Vec2&)> TouchOutsideHandleEvent;
 
 /**
  * @brief 一个虚拟摇杆类
@@ -44,16 +50,19 @@ public:
 	static Joystick* create(const char *fnBg,     float bgRadius,
 					        const char *fnHandle, float handleRadius);
 
+	bool init(const char *fnBg,     float bgRadius,
+			  const char *fnHandle, float handleRadius);
+
 	bool onTouchBegan(cocos2d::Touch *pTouch, cocos2d::Event *pEvent);
 	void onTouchMoved(cocos2d::Touch *pTouch, cocos2d::Event *pEvent);
 	void onTouchEnded(cocos2d::Touch *pTouch, cocos2d::Event *pEvent);
 	void onTouchCancelled(cocos2d::Touch *pTouch, cocos2d::Event *pEvent);
 
 	///设置摇杆移动时要调用的方法，这个方法的声明为void f（float interval, float x, float y）,interval是时间间隔，传入的x、y的范围都是0-1.0F
-	void setHandleEventListener(cocos2d::Ref *target, SEL_JoystickEvent selector);
+	void setHandleEventListener(const JoystickEventCallback& callback);
 
-	///设置摇杆移动时要调用的方法，这个方法的声明为void f（float interval, float x, float y）,interval是时间间隔，传入的x、y的范围都是0-1.0F
-	void setHandleEventListener(JoystickEventCallback eventCallback);
+	///设置触碰在摇杆外部的时候的回调方法，如果该回调返回true,则以后将继续接收JET_TOUCH_BEGIN,JET_TOUCH_MOVE和JET_TOUCH_END消息
+	void setTouchOutsideCallback(const TouchOutsideHandleEvent& callback);
 
 	///这个方法每一帧都被调用,如果设置了摇杆事件的处理的话他会调用哪个处理方法
 	void callHandleEvent(float interval);
@@ -66,26 +75,21 @@ protected:
 	bool  m_bMove;		           ///<摇杆是否正在移动
 
 	cocos2d::Point m_handlePos;    ///<摇杆在底盘坐标系的坐标
-
-	JoystickEventCallback m_eventCallback;
-
-	cocos2d::Ref*     m_touchEventListener;
-    SEL_JoystickEvent m_touchEventSelector;
-
-	bool init(const char *fnBg,     float bgRadius,
-			  const char *fnHandle, float handleRadius);
 	
+	JoystickEventCallback m_touchEventCallback;
+	TouchOutsideHandleEvent m_touchOutsideCallback;
+	
+	void setHandlePosition(const cocos2d::Vec2 position);
 };
 
-inline void Joystick::setHandleEventListener(JoystickEventCallback eventCallback)
+inline void Joystick::setHandleEventListener(const JoystickEventCallback& callback)
 {
-	m_eventCallback = eventCallback;
+	m_touchEventCallback = callback;
 }
 
-inline void Joystick::setHandleEventListener(cocos2d::Ref *target, SEL_JoystickEvent selector)
+inline void Joystick::setTouchOutsideCallback(const TouchOutsideHandleEvent& callback)
 {
-	m_touchEventListener = target;
-	m_touchEventSelector = selector;
+	m_touchOutsideCallback = callback;
 }
 
 #endif
