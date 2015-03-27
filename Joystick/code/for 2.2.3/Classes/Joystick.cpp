@@ -32,6 +32,8 @@ bool Joystick::init(const char *fnBg,float bgRadius,const char *fnHandle,float h
 	//初始化参数
 	m_touchEventListener = 0;
     m_touchEventSelector = 0;
+	m_outsideEventListener = 0;
+    m_outsideEventSelector = 0;
 	m_bgRadius     = bgRadius;
 	m_handleRadius = handleRadius;
 	m_handlePos    = ccp(0.0f,0.0f);
@@ -58,15 +60,49 @@ bool Joystick::init(const char *fnBg,float bgRadius,const char *fnHandle,float h
 bool Joystick::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent)
 {
 	CCPoint point = this->convertTouchToNodeSpaceAR(pTouch);
-	
+
 	//判断触点是否在摇杆上
+	if(point.x*point.x+point.y*point.y < m_handleRadius*m_handleRadius)
+	{
+		m_bMove = true;
+
+		setHandlePosition(pTouch->getLocation());
+
+		CCPoint pos = m_handle->getPosition();
+
+		if(m_touchEventListener && m_touchEventSelector)
+			(m_touchEventListener->*m_touchEventSelector)(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_BEGIN);
+
+		return true;
+	}
+	else if(m_outsideEventListener && 
+			m_outsideEventSelector && 
+			(m_outsideEventListener->*m_outsideEventSelector)(this,pTouch->getLocation()))
+	{
+		m_bMove = true;
+
+		setHandlePosition(pTouch->getLocation());
+
+		point   = this->convertTouchToNodeSpaceAR(pTouch);
+		
+		CCPoint pos = m_handle->getPosition();
+
+		if(m_touchEventListener && m_touchEventSelector)
+			(m_touchEventListener->*m_touchEventSelector)(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_BEGIN);
+
+		return true;
+	}
+
+	return false;
+
+
 	if(point.x*point.x+point.y*point.y < m_handleRadius*m_handleRadius)
 	{
 		m_bMove = true;
 
 		CCPoint pos = m_handle->getPosition();
 		if(m_touchEventListener && m_touchEventSelector)
-			(m_touchEventListener->*m_touchEventSelector)(0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_BEGIN);
+			(m_touchEventListener->*m_touchEventSelector)(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_BEGIN);
 		
 		return true;
 	}
@@ -92,7 +128,7 @@ void Joystick::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent)
 {
 	CCPoint pos = m_handle->getPosition();
 	if(m_touchEventListener && m_touchEventSelector)
-			(m_touchEventListener->*m_touchEventSelector)(0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_END);
+			(m_touchEventListener->*m_touchEventSelector)(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_END);
 
 	m_handle->setPosition(ccp(0.0f,0.0f));
 
@@ -103,7 +139,7 @@ void Joystick::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent)
 {
 	CCPoint pos = m_handle->getPosition();
 	if(m_touchEventListener && m_touchEventSelector)
-			(m_touchEventListener->*m_touchEventSelector)(0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_END);
+			(m_touchEventListener->*m_touchEventSelector)(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JET_TOUCH_END);
 	
 	m_handle->setPosition(ccp(0.0f,0.0f));
 
@@ -130,6 +166,20 @@ void Joystick::callHandleEvent(float interval)
 		CCPoint point = m_handle->getPosition();
 
 		if(m_touchEventListener && m_touchEventSelector)
-			(m_touchEventListener->*m_touchEventSelector)(interval,point.x/m_bgRadius,point.y/m_bgRadius,JET_TOUCH_MOVE);
+			(m_touchEventListener->*m_touchEventSelector)(this,interval,point.x/m_bgRadius,point.y/m_bgRadius,JET_TOUCH_MOVE);
 	}
+}
+
+void Joystick::setHandlePosition(const CCPoint& position)
+{
+	//将摇杆限制在底盘的范围内
+	CCPoint point = this->convertToNodeSpaceAR(position);
+
+	if(point.x*point.x+point.y*point.y > m_bgRadius*m_bgRadius)
+	{
+		point.normalize();
+		point = point * m_bgRadius;
+	}
+
+	m_handle->setPosition(point);
 }

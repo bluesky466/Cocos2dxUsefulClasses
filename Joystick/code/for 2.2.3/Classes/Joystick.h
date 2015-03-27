@@ -8,16 +8,26 @@
  github : https://github.com/bluesky466/cocos2dxUsefulClasses
  ****************************************************************************/
 
-#ifndef __JOYSTICK_H__
-#define __JOYSTICK_H__
+#ifndef _JOYSTICK_H_
+#define _JOYSTICK_H_
 
 #include "cocos2d.h"
 
-enum JoystickEventType{JET_TOUCH_BEGIN,JET_TOUCH_MOVE,JET_TOUCH_END};
+enum JoystickEventType{
+	JET_TOUCH_BEGIN,
+	JET_TOUCH_MOVE,
+	JET_TOUCH_END
+};
+
+class Joystick;
 
 //interval是时间间隔,传入的x、y的范围都是0-1.0F,JoystickEventType是类型（开始,移动,结束）
-typedef void (cocos2d::CCObject::*SEL_JoystickEvent)(float interval,float x, float y,JoystickEventType type);
+typedef void (cocos2d::CCObject::*SEL_JoystickEvent)(Joystick*,float interval,float x, float y,JoystickEventType type);
 #define joystickEvent_selector(_SELECTOR) (SEL_JoystickEvent)(&_SELECTOR)
+
+///触碰在摇杆外部的时候的回调方法，如果该回调返回true,则以后将继续接收JET_TOUCH_BEGIN,JET_TOUCH_MOVE和JET_TOUCH_END消息
+typedef bool (cocos2d::CCObject::*SEL_TouchOutsideHandleEvent)(Joystick*,const cocos2d::CCPoint&);
+#define touchOutsideHandleEvent_selector(_SELECTOR) (SEL_TouchOutsideHandleEvent)(&_SELECTOR)
 
 /**
  * @brief 一个虚拟摇杆类
@@ -41,6 +51,9 @@ public:
 	static Joystick* create(const char *fnBg,     float bgRadius,
 					        const char *fnHandle, float handleRadius);
 
+	bool init(const char *fnBg,     float bgRadius,
+			  const char *fnHandle, float handleRadius);
+
 	bool ccTouchBegan(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent);
 	void ccTouchMoved(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent);
 	void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent);
@@ -51,6 +64,9 @@ public:
 
 	///设置摇杆移动时要调用的方法，这个方法的声明为void f（float interval, float x, float y）,interval是时间间隔，传入的x、y的范围都是0-1.0F
 	void setHandleEventListener(cocos2d::CCObject *target, SEL_JoystickEvent selector);
+
+	///触碰在摇杆外部的时候的回调方法，如果该回调返回true,则以后将继续接收JET_TOUCH_BEGIN,JET_TOUCH_MOVE和JET_TOUCH_END消息
+	void setTouchOutsideHandleEventListener(cocos2d::CCObject *target, SEL_TouchOutsideHandleEvent selector);
 
 	///这个方法每一帧都被调用,如果设置了摇杆事件的处理的话他会调用哪个处理方法
 	void callHandleEvent(float interval);
@@ -63,19 +79,26 @@ protected:
 	bool  m_bMove;		            ///<摇杆是否正在移动
 
 	cocos2d::CCPoint m_handlePos;   ///<摇杆在底盘坐标系的坐标
-
+	
 	cocos2d::CCObject*  m_touchEventListener;
     SEL_JoystickEvent   m_touchEventSelector;
 
-	bool init(const char *fnBg,     float bgRadius,
-			  const char *fnHandle, float handleRadius);
-	
+	cocos2d::CCObject*  m_outsideEventListener;
+    SEL_TouchOutsideHandleEvent  m_outsideEventSelector;
+
+	void setHandlePosition(const cocos2d::CCPoint& position);
 };
 
 inline void Joystick::setHandleEventListener(cocos2d::CCObject *target, SEL_JoystickEvent selector)
 {
 	m_touchEventListener = target;
 	m_touchEventSelector = selector;
+}
+
+inline void Joystick::setTouchOutsideHandleEventListener(cocos2d::CCObject *target, SEL_TouchOutsideHandleEvent selector)
+{
+	m_outsideEventListener = target;
+	m_outsideEventSelector = selector;
 }
 
 #endif

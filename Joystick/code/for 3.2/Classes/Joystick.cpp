@@ -66,7 +66,7 @@ bool Joystick::init(const char *fnBg,float bgRadius,const char *fnHandle,float h
 
 bool Joystick::onTouchBegan(Touch *pTouch, Event *pEvent)
 {
-	Point point = this->convertTouchToNodeSpaceAR(pTouch);
+	Vec2 point = this->convertTouchToNodeSpaceAR(pTouch);
 	
 	//判断触点是否在摇杆上
 	if(point.x*point.x+point.y*point.y < m_handleRadius*m_handleRadius)
@@ -75,7 +75,7 @@ bool Joystick::onTouchBegan(Touch *pTouch, Event *pEvent)
 
 		setHandlePosition(pTouch->getLocation());
 
-		Point pos = m_handle->getPosition();
+		Vec2 pos = m_handle->getPosition();
 
 		if(m_touchEventCallback)
 			m_touchEventCallback(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JoystickEventType::JET_TOUCH_BEGIN);
@@ -90,7 +90,7 @@ bool Joystick::onTouchBegan(Touch *pTouch, Event *pEvent)
 
 		point   = this->convertTouchToNodeSpaceAR(pTouch);
 		
-		Point pos = m_handle->getPosition();
+		Vec2 pos = m_handle->getPosition();
 
 		if(m_touchEventCallback)
 			m_touchEventCallback(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JoystickEventType::JET_TOUCH_BEGIN);
@@ -108,7 +108,7 @@ void Joystick::onTouchMoved(Touch *pTouch, Event *pEvent)
 
 void Joystick::onTouchEnded(Touch *pTouch, Event *pEvent)
 {
-	Point pos = m_handle->getPosition();
+	Vec2 pos = m_handle->getPosition();
 
 	if(m_touchEventCallback)
 		m_touchEventCallback(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JoystickEventType::JET_TOUCH_END);
@@ -120,7 +120,7 @@ void Joystick::onTouchEnded(Touch *pTouch, Event *pEvent)
 
 void Joystick::onTouchCancelled(Touch *pTouch, Event *pEvent)
 {
-	Point pos = m_handle->getPosition();
+	Vec2 pos = m_handle->getPosition();
 
 	if(m_touchEventCallback)
 		m_touchEventCallback(this,0.0f,pos.x/m_bgRadius,pos.y/m_bgRadius,JoystickEventType::JET_TOUCH_END);
@@ -135,17 +135,17 @@ void Joystick::callHandleEvent(float interval)
 	if(m_bMove)
 	{
 		//调用摇杆事件处理方法
-		Point point = m_handle->getPosition();
+		Vec2 point = m_handle->getPosition();
 
 		if(m_touchEventCallback)
 			m_touchEventCallback(this,interval,point.x/m_bgRadius,point.y/m_bgRadius,JoystickEventType::JET_TOUCH_MOVE);
 	}
 }
 
-void Joystick::setHandlePosition(const cocos2d::Vec2 position)
+void Joystick::setHandlePosition(const cocos2d::Vec2& position)
 {
 	//将摇杆限制在底盘的范围内
-	Point point = this->convertToNodeSpaceAR(position);
+	Vec2 point = this->convertToNodeSpaceAR(position);
 
 	if(point.x*point.x+point.y*point.y > m_bgRadius*m_bgRadius)
 	{

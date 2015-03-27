@@ -74,12 +74,12 @@ protected:
 	float m_handleRadius;          ///<摇杆的半径
 	bool  m_bMove;		           ///<摇杆是否正在移动
 
-	cocos2d::Point m_handlePos;    ///<摇杆在底盘坐标系的坐标
+	cocos2d::Vec2 m_handlePos;     ///<摇杆在底盘坐标系的坐标
 	
 	JoystickEventCallback m_touchEventCallback;
 	TouchOutsideHandleEvent m_touchOutsideCallback;
 	
-	void setHandlePosition(const cocos2d::Vec2 position);
+	void setHandlePosition(const cocos2d::Vec2& position);
 };
 
 inline void Joystick::setHandleEventListener(const JoystickEventCallback& callback)
